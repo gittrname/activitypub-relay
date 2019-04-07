@@ -1,0 +1,5 @@
+{
+    "debug.node.autoAttach": "on",
+    "npm.enableScriptExplorer": true,
+    "npm.runSilent": true
+}

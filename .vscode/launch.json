@@ -1,0 +1,25 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid":"830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Program",
+            "program": "${workspaceFolder}/bin/www",
+            "env": {
+              "NODE_ENV":"development",
+              "RELAY_URL":"https://dev-relay.mstdn-jp.site",
+              "REDIS_HOST":"127.0.0.1",
+              "REDIS_PORT":"6379",
+              "DB_HOST":"127.0.0.1",
+              "DB_PORT":"5432",
+              "DB_NAME":"postgres",
+              "DB_USER":"postgres",
+              "DB_PASS":"postgres"
+            }
+        }
+    ]
+}
