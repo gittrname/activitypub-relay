@@ -2,7 +2,6 @@ var assert = require("chai").assert;
 var nock = require('nock');
 
 var followQueue = require('../queues/follow_queue');
-var Signature = require('../utils/signature_utilily');
 
 
 describe('follow_queues', function() {
@@ -42,20 +41,18 @@ describe('follow_queues', function() {
           headers: {
             "content-type":"application/activity+json",
             "date":"Tue, 02 Apr 2019 18:14:03 GMT",
-            "digest":Signature.digest(data),
+            "digest":"SHA-256=Re2AxS2pEXIEcu0wEfFHrJMJdS3z/GjJHDjXsh0aPK4=",
             "host":"pub.example.com",
-            "signature":"keyId=\"https://pub.example.com/actor#main-key\",algorithm=\"rsa-sha256\",headers=\"(request-target) host date digest content-type\",signature=\"EdEdOOxX+gXpWyWMDlNcU8K4T3zRdVW5dc74XVk16s3sTNHsVwRRecFGAd1Jojge/5zNNtA58QKhFvWhxcADNFPOhJVtGYyAVTIL42yKcreK6c6JvD6rhoTcvSgL0T/n86EvuMd+udjOs1Sgx8gSJDjuzjhCqGn3FmWV9PAcn1anfhxflTWyyysRoqERD5GIXrLyRQhU9Z5WN0c8hX/+z8UbCVo1jZqEmA4NmJbFmkUly2Buk8M5RzgvnRnZzZBkM3wBJSA748ba925GB9MbWnvlccWN/3Rb907gcPVGXSesIrUPzzqkKVCEmgFn9VzqN8+DDbRDvtbSpB+QqQMrkg==\""
+            "signature":"keyId=\"https://pub.example.com/actor#main-key\",headers=\"(request-target) host date digest\",algorithm=\"rsa-sha256\",signature=\"KuNOL9wYpUBcGygV4uFP0WPMw2+vcxX7LlT5/Hon1MXWUKtLVLToDyfRsH4tJ4NvplgHvPgmY5x/ymEXJ8aN0IPltHjVwWfwBNVWWuis8v8vUgkeiQ+HfxGSp50jb8JfuHwrqO8VmhlizfP/g+diBSnLWDZhyTTmvWppQFvvieNzIOUjnchKIAVs9r/ZxLbeMUVaqmIZ08f7Clmf51rfByGf3mZK/kp+UhSqKNciDacFsG+phPcCLTuUr3l41shhZono31nsf0YLtW9bkLBw/t7b/uHThTbTUnGuwbQ+QV1Mul6SAdnDw31poET6UW9HTfHnDaVqEwX0FntPDf/t6w==\""
           },
           body: data
         }
       }
     };
+
     return followQueue(job)
-      .then(function() {
+      .then(function(v) {
         assert.ok();
-      })
-      .catch(function(e) {
-        assert.fail();
       });
   });
 });

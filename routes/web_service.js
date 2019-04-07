@@ -22,7 +22,7 @@ unfollowQueue.process(
 );
 var forwardQueue = new Queue('forward', config.redis);
 forwardQueue.process(
-  5,
+  config.queue.pool,
   require('../queues/forward_queue')
 );
 

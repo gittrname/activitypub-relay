@@ -1,6 +1,6 @@
 {
   "name": "category-relay",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "カテゴリごとに分類し配送するActivityPub Relay Server",
   "main": "./bin/www",
   "scripts": {

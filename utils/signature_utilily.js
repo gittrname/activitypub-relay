@@ -2,6 +2,8 @@ var crypto = require('crypto');
 
 module.exports = {
 
+  //
+  // parse signature params
   parseSignParams: function (req) {
 
     if (!req.headers['signature']) {
@@ -35,6 +37,8 @@ module.exports = {
     return signParams;
   },
 
+  //
+  // make signed text
   signedStr: function(signHeader, req) {
 
     var signeds = [];
@@ -66,6 +70,8 @@ module.exports = {
     return signeds.join("\n");
   },
 
+  //
+  // make digest
   digest: function(rawData) {
 
     var hash = crypto.createHash('sha256');
@@ -74,6 +80,8 @@ module.exports = {
     return 'SHA-256='+hash.digest('base64');
   },
 
+  //
+  // sign verify
   verifyRequest: function(publicKey, req) {
 
     var params = this.parseSignParams(req);
@@ -85,6 +93,8 @@ module.exports = {
     return verify.verify(publicKey, params['signature'], 'base64');
   },
 
+  //
+  // sign request
   signRequest: function(keyId, privateKey, req, signHeaders=['(request-target)','host','date','digest']) {
 
     var signedStr = this.signedStr(signHeaders.join(' '), req);

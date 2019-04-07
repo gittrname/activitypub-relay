@@ -2,13 +2,16 @@ var LruCache = require('lru-cache');
 var request = require('request');
 var url = require('url');
 
+var config = require('../config/settings');
 var database = require('../database');
 
 var cache = new LruCache({
-  max: 200,
-  maxAge: 60 * 60 * 1000  // 1H
+  max: config.cache.size,
+  maxAge: config.cache.limit
 });
 
+//
+//
 var cacheAccount = function(keyId) {
 
   return new Promise(function(resolve, reject) {

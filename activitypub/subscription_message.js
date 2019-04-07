@@ -25,7 +25,7 @@ subscription_message.prototype.sendActivity = function(inboxUrl, activity){
   var rawBody = JSON.stringify(activity);
   this.headers['digest'] = Signature.digest(rawBody);
 
-  // リクエスト送付
+  // request
   var options = Signature.signRequest(
     this.keyId,
     this.privateKey,

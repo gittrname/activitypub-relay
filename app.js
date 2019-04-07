@@ -13,6 +13,7 @@ app.use(logger('dev'));
 app.use(bodyParser.json({
   type: 'application/activity+json',
   verify: function (req, res, buf, encoding) {
+    // rawデータ取得
     if (buf && buf.length) {
       req.rawBody = buf.toString(encoding || 'utf8');
     }
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Httpヘッダー「Host」を強制的に自ドメインにする。
+// (ローカル環境だとIPアドレスとなるため（暫定対応）)
 app.use(function(req, res, next) {
 
   var relayUrl = url.parse(config.relay.url);
@@ -31,7 +33,7 @@ app.use(function(req, res, next) {
 });
 
 
-//
+// web_service
 app.use('/', require('./routes/web_service'));
 
 

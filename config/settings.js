@@ -30,5 +30,14 @@ module.exports = {
       directory:'./migrations',
       tableName: 'knex_migrations'
     }
+  },
+
+  queue: {
+    pool: 5
+  },
+
+  cache: {
+    size: 200,
+    limit: 60 * 60 * 1000 // 1H
   }
 };
