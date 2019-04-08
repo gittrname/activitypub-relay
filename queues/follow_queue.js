@@ -15,7 +15,6 @@ module.exports = function(job) {
 
   //
   var subscriptionMessage = new SubscriptionMessage(config.relay.url, keyPair.private);
-  var activity = new Activity(config.relay.url);
   
   // Signatation Params
   var client = job.data.client;
@@ -33,7 +32,7 @@ module.exports = function(job) {
   
         // 拒否応答
         return subscriptionMessage.sendActivity(
-          account['shared_inbox_url'], activity.reject(signParams['keyId'], 'Follow'));
+          account['shared_inbox_url'], Activity.reject(config.relay.url, signParams['keyId'], client.body));
       }
 
       // すでにRelay登録されていないか確認
@@ -52,7 +51,7 @@ module.exports = function(job) {
       // 承認応答
       console.log('Send Accept Activity. target='+account['shared_inbox_url']);
       return subscriptionMessage.sendActivity(
-        account['shared_inbox_url'], activity.accept(Activity.parse(client.body)));
+        account['shared_inbox_url'], Activity.accept(config.relay.url, client.body));
     })
     .catch(function(err) {
       console.log(err.message);

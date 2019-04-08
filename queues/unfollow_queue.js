@@ -18,7 +18,6 @@ module.exports = function(job) {
 
   //
   var subscriptionMessage = new SubscriptionMessage(config.relay.url, keyPair.private);
-  var activity = new Activity(config.relay.url);
       
   // Signatation Params
   var client = job.data.client;
@@ -66,7 +65,7 @@ module.exports = function(job) {
       // 承認リクエスト送付
       console.log('Send Accept Activity. targetId='+account['shared_inbox_url']);
       return subscriptionMessage.sendActivity(
-        account['shared_inbox_url'], activity.accept(Activity.parse(client.body)));
+        account['shared_inbox_url'], Activity.accept(config.relay.url, client.body));
     })
     .catch(function(err) {
       console.log(err.message);

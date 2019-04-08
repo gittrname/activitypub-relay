@@ -52,7 +52,7 @@ describe('follow_queues', function() {
 
     return followQueue(job)
       .then(function(v) {
-        assert.ok();
+        assert(v);
       });
   });
 });

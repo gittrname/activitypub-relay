@@ -15,7 +15,6 @@ module.exports = function(job) {
 
   //
   var subscriptionMessage = new SubscriptionMessage(config.relay.url, keyPair.private);
-  var activity = new Activity(config.relay.url);
       
   // Signatation Params
   var client = job.data.client;
@@ -48,12 +47,15 @@ module.exports = function(job) {
               +' form='+account['uri']+' to='+rows[idx]['shared_inbox_url']);
             subscriptionMessage.sendActivity(
               rows[idx]['shared_inbox_url'], Activity.parse(client.body));
+            //subscriptionMessage.sendActivity(
+            //  rows[idx]['shared_inbox_url'], Activity.announce(config.relay.url, client.body));
           }
 
           return Promise.resolve();
         });
     })
     .catch(function(err) {
+      console.log(err);
       return reject(err);
     });
 };

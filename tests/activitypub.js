@@ -11,8 +11,7 @@ var keyPair = require('../config/relay_keypair.json');
 describe('subscription_message', function() {
   it('sendActivity', function() {
 
-    var activity = new Activity("https://relay.example.com");
-    var activityObj = activity.accept({
+    var activityObj = Activity.accept("https://relay.example.com", {
       '@context': 'https://www.w3.org/ns/activitystreams',
       'id':     'https://relay.example.com/activities/000-000-00',
       'actor':  'https://relay.example.com/actor',

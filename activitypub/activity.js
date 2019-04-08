@@ -1,58 +1,59 @@
 var uuid = require('node-uuid');
 
-var Activity = function(url) {
-  this.url = url;
-};
+module.exports = {
 
-Activity.prototype.accept = function(activity) {
-  return {
-    '@context': 'https://www.w3.org/ns/activitystreams',
-    'id':     this.url+'/activities/'+uuid.v4(),
-    'actor':  this.url+'/actor',
-    'type':   'Accept',
-    'object': activity
-  };
-};
+  //
+  //
+  accept: function(url, activity) {
+    activity = this.parse(activity);
 
-Activity.prototype.announce = function(activity) {
-  return {
-    '@context': 'https://www.w3.org/ns/activitystreams',
-    'id':     this.url+'/activities/'+uuid.v4(),
-    'actor':  this.url+'/actor',
-    'type':   'Announce',
-    'object': activity.id,
-    'to':     this.url+'/actor/followers',
-  };
-};
+    return {
+      '@context': 'https://www.w3.org/ns/activitystreams',
+      'id':     url+'/activities/'+uuid.v4(),
+      'actor':  url+'/actor',
+      'type':   'Accept',
+      'object': activity
+    };
+  },
+  //
+  //
+  reject: function(url, keyId, activity) {
+    activity = this.parse(activity);
 
-Activity.prototype.nested = function(activity) {
-  return {
-    '@context': 'https://www.w3.org/ns/activitystreams',
-    'id':     this.url+'/activities/'+uuid.v4(),
-    'actor':  this.url+'/actor',
-    'type':   activity.type,
-    'object': activity.object,
-    'to':     this.url+'/actor/followers',
-  };
-};
+    return {
+      '@context': 'https://www.w3.org/ns/activitystreams',
+      'id':     url+'/actor/'+uuid.v4(),
+      'type':   'Reject',
+      'actor':  url+'/actor',
+      'object': {
+        'id':     url+'/actor',
+        'type':   activity.type,
+        'actor':  keyId,
+        'object': url+'/actor'
+      }
+    };
+  },
+  //
+  //
+  announce: function(url, activity) {
+    activity = this.parse(activity);
 
-Activity.prototype.reject = function(actorId, type) {
-  return {
-    '@context': 'https://www.w3.org/ns/activitystreams',
-    'id':     this.url+'/actor/'+uuid.v4(),
-    'type':   'Reject',
-    'actor':  this.url+'/actor',
-    'object': {
-      'id':     this.url+'/actor',
-      'type':   type,
-      'actor':  actorId,
-      'object': this.url+'/actor'
+    return {
+      '@context': 'https://www.w3.org/ns/activitystreams',
+      'id':     url+'/activities/'+uuid.v4(),
+      'actor':  url+'/actor',
+      'type':   'Announce',
+      'object': activity.object.id,
+      'to':     [url+'/actor/followers']
+    };
+  },
+  //
+  //
+  parse: function(rawData) {
+    if (typeof(rawData) == 'string') {
+      return JSON.parse(rawData);
+    } else {
+      return rawData;
     }
-  };
+  }
 };
-
-Activity.parse = function(body) {
-  return JSON.parse(body);
-};
-
-module.exports = Activity;
