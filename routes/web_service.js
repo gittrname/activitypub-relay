@@ -6,25 +6,12 @@ var router = express.Router();
 var Actor = require('../activitypub/actor');
 var Activity = require('../activitypub/activity');
 
+//
+var Worker = require('../worker');
+
 // 設定ロード
 var config = require('../config/settings');
 var keyPair = require('../config/relay_keypair.json');
-
-// キュー処理生成
-var Queue = require('bull');
-var followQueue = new Queue('follow', config.redis);
-followQueue.process(
-  require('../queues/follow_queue')
-);
-var unfollowQueue = new Queue('unfollow', config.redis);
-unfollowQueue.process(
-  require('../queues/unfollow_queue')
-);
-var forwardQueue = new Queue('forward', config.redis);
-forwardQueue.process(
-  config.queue.pool,
-  require('../queues/forward_queue')
-);
 
 
 //
@@ -117,7 +104,7 @@ router.post('/inbox', function (req, res, next) {
       console.log('queuing follow request. [actor:'+activity.actor+']');
 
       // キューに格納
-      followQueue.add({
+      Worker.followQueue.add({
         client: {
           method: req.method,
           path: req.path,
@@ -130,8 +117,8 @@ router.post('/inbox', function (req, res, next) {
     case "Undo":
       console.log('queuing unfollow request. [actor:'+activity.actor+']');
 
-      // キューに格納
-      unfollowQueue.add({
+      // // キューに格納
+      Worker.unfollowQueue.add({
         client: {
           method: req.method,
           path: req.path,
@@ -147,8 +134,8 @@ router.post('/inbox', function (req, res, next) {
     case "Announce":
       console.log('queuing forward request. [actor:'+activity.actor+']');
 
-      // キューに格納
-      forwardQueue.add({
+      // // キューに格納
+      Worker.forwardQueue.add({
         client: {
           method: req.method,
           path: req.path,
