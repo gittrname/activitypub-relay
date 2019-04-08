@@ -42,9 +42,10 @@ module.exports = function(job) {
         .select()
         .whereNot({url: account.url})
         .then(function(rows) {
-          console.log('Send Activity. targetId='+signParams['keyId']);
           for(idx in rows) {
             // 転送送付
+            console.log('Send Activity.'
+              +' form='+account['uri']+' to='+rows[idx]['shared_inbox_url']);
             subscriptionMessage.sendActivity(
               rows[idx]['shared_inbox_url'], Activity.parse(client.body));
           }

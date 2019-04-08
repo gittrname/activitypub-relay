@@ -36,7 +36,7 @@ subscription_message.prototype.sendActivity = function(inboxUrl, activity){
       headers: this.headers,
       body: rawBody
     });
-  console.log(options);
+//  console.log(options);
 
 
   return new Promise(function(resolve, reject) {

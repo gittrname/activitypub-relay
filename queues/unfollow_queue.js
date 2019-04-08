@@ -58,7 +58,7 @@ module.exports = function(job) {
         
       //
       // 承認リクエスト送付
-      console.log('Send Accept Request. targetId='+signParams['keyId']);
+      console.log('Send Accept Activity. targetId='+account['shared_inbox_url']);
       return subscriptionMessage.sendActivity(
         account['shared_inbox_url'], activity.accept(Activity.parse(client.body)));
     })
