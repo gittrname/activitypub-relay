@@ -1,3 +1,5 @@
+var LruCache = require('lru-cache');
+
 var Activity = require('../activitypub/activity');
 var SubscriptionMessage = require('../activitypub/subscription_message');
 var Signature = require('../utils/signature_utilily');
@@ -5,6 +7,7 @@ var Signature = require('../utils/signature_utilily');
 var accountCache = require('./account_cache');
 
 var database = require('../database');
+var cache = require('../cache');
 
 var config = require('../config/settings');
 var keyPair = require('../config/relay_keypair.json');
@@ -55,6 +58,9 @@ module.exports = function(job) {
               .where({id: rows[0]['id']});
           }
         });
+
+      //
+      cache.del(signParams['keyId']);
         
       //
       // 承認リクエスト送付

@@ -1,18 +1,11 @@
-var LruCache = require('lru-cache');
 var request = require('request');
-var url = require('url');
 
-var config = require('../config/settings');
 var database = require('../database');
-
-var cache = new LruCache({
-  max: config.cache.size,
-  maxAge: config.cache.limit
-});
+var cache = require('../cache');
 
 //
 //
-var cacheAccount = function(keyId) {
+module.exports = function(keyId) {
 
   return new Promise(function(resolve, reject) {
 
@@ -74,10 +67,9 @@ var accountRequest = function(keyId) {
       }
 
       // レコード作成
-      var accountUrl = url.parse(data.id);
       var row = {
         'username': data.preferredUsername,
-        'domain': accountUrl.domain,
+        'domain': res.request.host,
         'private_key': '',
         'public_key': data.publicKey.publicKeyPem,
         
@@ -103,5 +95,3 @@ var accountRequest = function(keyId) {
     });
   });
 };
-
-module.exports = cacheAccount;
