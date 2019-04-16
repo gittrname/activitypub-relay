@@ -14,7 +14,8 @@ var keyPair = require('../config/relay_keypair.json');
 module.exports = function(job) {
 
   //
-  var subscriptionMessage = new SubscriptionMessage(config.relay.url, keyPair.private);
+  var subscriptionMessage = new SubscriptionMessage(config.relay, keyPair.private);
+  var activity = new Activity(config.relay);
       
   // Signatation Params
   var client = job.data.client;
@@ -32,7 +33,7 @@ module.exports = function(job) {
   
         // 拒否応答
         return subscriptionMessage.sendActivity(
-          account['shared_inbox_url'], activity.reject(signParams['keyId'], 'Follow'));
+          account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
       }
 
 
@@ -42,13 +43,11 @@ module.exports = function(job) {
         .whereNot({url: account.url})
         .then(function(rows) {
           for(idx in rows) {
-            // 転送送付
+            // 転送
             console.log('Send Activity.'
-              +' form='+account['uri']+' to='+rows[idx]['shared_inbox_url']);
+              +' form='+account['uri']+' to='+rows[idx]['inbox_url']);
             subscriptionMessage.sendActivity(
-              rows[idx]['shared_inbox_url'], Activity.parse(client.body));
-            //subscriptionMessage.sendActivity(
-            //  rows[idx]['shared_inbox_url'], Activity.announce(config.relay.url, client.body));
+                rows[idx]['inbox_url'], Activity.parse(client.body));  // 単純フォーワード
           }
 
           return Promise.resolve();

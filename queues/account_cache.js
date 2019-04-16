@@ -48,7 +48,7 @@ module.exports = function(keyId) {
 };
 
 //
-//
+// アカウント情報取得
 var accountRequest = function(keyId) {
 
   var options = {
@@ -64,6 +64,12 @@ var accountRequest = function(keyId) {
 
       if (err) {
         return reject(err);
+      }
+      if (!data) {
+        return reject(new Error('no response.'));
+      }
+      if (!data=={}) {
+        return reject(new Error('no response.'));
       }
 
       // レコード作成

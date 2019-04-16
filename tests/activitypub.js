@@ -9,9 +9,16 @@ var keyPair = require('../config/relay_keypair.json');
 // 
 // subscription_message
 describe('subscription_message', function() {
+
+  var activity = new Activity({
+    url: "https://relay.example.com",
+    actor: "https://relay.example.com/actor",
+    account: 'acct:relay@/relay.example.com',
+  });
+
   it('sendActivity', function() {
 
-    var activityObj = Activity.accept("https://relay.example.com", {
+    var activityObj = activity.accept({
       '@context': 'https://www.w3.org/ns/activitystreams',
       'id':     'https://relay.example.com/activities/000-000-00',
       'actor':  'https://relay.example.com/actor',
@@ -28,16 +35,10 @@ describe('subscription_message', function() {
       url: 'https://relay.example.com'
     }, keyPair.private);
 
-    subscriptionMessage.sendActivity(
-      'https://pub.example.com/inbox',
-      activityObj,
-      function(err, res, data) {
-        if (err) {
-          console.log(err);
-          assert.fail();
-        }
+    return subscriptionMessage
+      .sendActivity('https://pub.example.com/inbox', activityObj)
+      .then(function(res) {
         assert.equal(202, res.statusCode);
-      }
-    );
+      })
   });
 });

@@ -3,8 +3,10 @@
 /redis
 /postgres
 /mock
+/tmp
 /package-lock.json
 /.env.developement
+/.env.production
 /config/relay_keypair.json
 /tests/sign_test.js
 /npm-debug.log

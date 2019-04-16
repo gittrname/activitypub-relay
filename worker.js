@@ -4,14 +4,16 @@ var Queue = require('bull');
 var config = require('./config/settings');
 
 // 各キューを生成
-var follow = new Queue('follow', config.redis);
-var unfollow = new Queue('unfollow', config.redis);
-var forward = new Queue('forward', config.redis);
+var follow = new Queue('follow', config);
+var unfollow = new Queue('unfollow', config);
+var forward = new Queue('forward', config);
+var remoteFollow = new Queue('remoteFollow', config);
 
 // プロセス設定
 follow.process(require('./queues/follow_queue'));
 unfollow.process(require('./queues/unfollow_queue'));
 forward.process(config.queue.pool, require('./queues/forward_queue'));
+remoteFollow.process(config.queue.pool, require('./queues/remote_follow_queue'));
   
 //
 module.exports = {
@@ -20,5 +22,8 @@ module.exports = {
   // アンフォローキュー
   unfollowQueue: unfollow,
   // フォーワードキュー
-  forwardQueue: forward
+  forwardQueue: forward,
+
+  // リモートフォローキュー
+  remoteFollowQueue: remoteFollow
 };

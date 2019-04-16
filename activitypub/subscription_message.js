@@ -4,9 +4,9 @@ var request = require('request');
 var Signature = require('../utils/signature_utilily');
 
 
-var subscription_message = function(url, privateKey) {
+var subscription_message = function(relay, privateKey) {
 
-  this.keyId = url + '/actor';
+  this.keyId = relay.actor+'#main-key';
   this.privateKey = privateKey;
 
   this.headers = {
@@ -30,18 +30,20 @@ subscription_message.prototype.sendActivity = function(inboxUrl, activity){
     this.keyId,
     this.privateKey,
     {
-      url: inboxUrl.href,
       path: inboxUrl.path,
       method: 'POST',
       headers: this.headers,
       body: rawBody
     });
 //  console.log(options);
+  options['url'] = inboxUrl.href;
 
 
   return new Promise(function(resolve, reject) {
     request(options, function(err, res, data) {
+      
       if (err) {
+        console.log(err.message);
         return reject(err);
       }
 

@@ -4,6 +4,7 @@ var path = require('path');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
 var url = require('url');
+var os = require('os');
 
 var config = require('./config/settings');
 
@@ -11,7 +12,10 @@ var app = express();
 
 app.use(logger('dev'));
 app.use(bodyParser.json({
-  type: 'application/activity+json',
+  type: [
+    'application/json',
+    'application/activity+json'
+  ],
   verify: function (req, res, buf, encoding) {
     // rawデータ取得
     if (buf && buf.length) {
@@ -22,19 +26,22 @@ app.use(bodyParser.json({
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 // Httpヘッダー「Host」を強制的に自ドメインにする。
 // (ローカル環境だとIPアドレスとなるため（暫定対応）)
 app.use(function(req, res, next) {
 
   var relayUrl = url.parse(config.relay.url);
-
   req.headers['host'] = relayUrl.host;
+  
   next();
 });
 
-
 // web_service
 app.use('/', require('./routes/web_service'));
+
+// api
+app.use('/api', require('./routes/api'));
 
 
 // catch 404 and forward to error handler
@@ -44,7 +51,7 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
-  console.log(err.message);
+  console.log(err.message+". path:"+req.path);
 
   res.status(err.status || 500);
   res.send(err.message);

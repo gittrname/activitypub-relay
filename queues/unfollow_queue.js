@@ -1,5 +1,3 @@
-var LruCache = require('lru-cache');
-
 var Activity = require('../activitypub/activity');
 var SubscriptionMessage = require('../activitypub/subscription_message');
 var Signature = require('../utils/signature_utilily');
@@ -17,7 +15,8 @@ var keyPair = require('../config/relay_keypair.json');
 module.exports = function(job) {
 
   //
-  var subscriptionMessage = new SubscriptionMessage(config.relay.url, keyPair.private);
+  var subscriptionMessage = new SubscriptionMessage(config.relay, keyPair.private);
+  var activity = new Activity(config.relay);
       
   // Signatation Params
   var client = job.data.client;
@@ -35,7 +34,7 @@ module.exports = function(job) {
   
         // 拒否応答
         return subscriptionMessage.sendActivity(
-          account['shared_inbox_url'], activity.reject(signParams['keyId'], 'Follow'));
+          config.relay.keyId, account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
       }
 
       // すでにRelay登録されていないか確認
@@ -65,7 +64,7 @@ module.exports = function(job) {
       // 承認リクエスト送付
       console.log('Send Accept Activity. targetId='+account['shared_inbox_url']);
       return subscriptionMessage.sendActivity(
-        account['shared_inbox_url'], Activity.accept(config.relay.url, client.body));
+        account['shared_inbox_url'], activity.accept(client.body));
     })
     .catch(function(err) {
       console.log(err.message);

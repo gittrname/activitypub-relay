@@ -16,8 +16,6 @@ var keyPair = require('../config/relay_keypair.json');
 
 //
 // Webfinger
-var relayUrl = url.parse(config.relay.url);
-var accountUri = 'acct:'+config.relay.account+'@'+relayUrl.host;
 router.get('/.well-known/webfinger', function (req, res, next) {
 
   if (!req.query.resource) {
@@ -25,19 +23,19 @@ router.get('/.well-known/webfinger', function (req, res, next) {
     error.status = 400;
     return next(error);
   }
-  if (req.query.resource != accountUri) {
+  if (req.query.resource != config.relay.account) {
     var error = new Error('Resource not found.');
     error.status = 404;
     return next(error);
   }
 
   var obj = {
-    'subject': accountUri,
+    'subject': config.relay.account,
     'links': [
       {
         'rel':  'self',
         'type': 'application/activity+json',
-        'href': config.relay.url+'/actor'
+        'href': config.relay.actor
       },
     ]
   };
@@ -47,7 +45,7 @@ router.get('/.well-known/webfinger', function (req, res, next) {
 router.get('/.well-known/host-meta', function(req, res, next) {
 
   var xml = xmlBuilder.create('XRD', {'xmlns': 'http://docs.oasis-open.org/ns/xri/xrd-1.0'})
-    .ele('Link', {'rel': 'lrdd', 'type':'application/xrd+xml', 'template': config.relay.url+'/.well-known/webfinger?resource='+accountUri})
+    .ele('Link', {'rel': 'lrdd', 'type':'application/xrd+xml', 'template': config.relay.url+'/.well-known/webfinger?resource='+config.relay.account})
   .end({ pretty: true});
 
   res.set('Content-Type', 'application/xml').send(xml).end();
@@ -58,7 +56,7 @@ router.get('/.well-known/host-meta', function(req, res, next) {
 router.get('/actor', function (req, res, next) {
 
   //
-  var actor = new Actor(config.relay.url);
+  var actor = new Actor(config.relay);
 
   //
   res.set('Content-Type', 'application/activity+json')
@@ -76,7 +74,7 @@ router.get('/status', function(req, res, next) {
 
 //
 // inbox
-router.post('/inbox', function (req, res, next) {
+router.post('(/|//)inbox', function (req, res, next) {
 
   // ヘッダーの検証
   if (!req.headers['content-type'] || req.headers['content-type'] != "application/activity+json") {
@@ -151,6 +149,11 @@ router.post('/inbox', function (req, res, next) {
       error.status = 400;
       return next(error);
   }
+
+  res.status(202).end();
+});
+
+router.post('(/|//)outbox', function (req, res, next) {
 
   res.status(202).end();
 });

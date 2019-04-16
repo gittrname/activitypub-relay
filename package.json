@@ -1,7 +1,7 @@
 {
-  "name": "category-relay",
-  "version": "0.0.1",
-  "description": "カテゴリごとに分類し配送するActivityPub Relay Server",
+  "name": "activitypub-relay",
+  "version": "0.1.0",
+  "description": "Nodejsで実装したActivityPub Relay Server",
   "main": "./bin/www",
   "scripts": {
     "build:keypair": "node ./bin/generateKeypair.js",
@@ -14,7 +14,6 @@
   "dependencies": {
     "body-parser": "^1.18.3",
     "bull": "^3.7.0",
-    "bull-arena": "^2.6.2",
     "config": "^2.0.1",
     "crypto": "^1.0.1",
     "debug": "~2.6.9",
@@ -27,6 +26,8 @@
     "node-uuid": "^1.4.8",
     "pg": "^7.9.0",
     "redis": "^2.8.0",
+    "request": "^2.88.0",
+    "validator": "^10.11.0",
     "xmlbuilder": "^12.0.0"
   },
   "devDependencies": {

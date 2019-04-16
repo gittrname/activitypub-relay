@@ -1,28 +1,35 @@
 version: '3'
 services:
+
+  relay:
+    restart: always
+    build: .
+    ports:
+      - "3000:3000"
+    env_file: .env.production
+    depends_on:
+      - db
+      - redis
+    networks:
+      - internal_network
+      - external_network
+
   db:
     restart: always
     image: postgres:9.6-alpine
-    ports:
-      - "5432:5432"
-#    networks:
-#      - internal_network
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-    volumes:
-      - ./postgres:/var/lib/postgresql/data
+    networks:
+      - internal_network
+#    volumes:
+#      - ./postgres:/var/lib/postgresql/data
+
   redis:
     restart: always
     image: redis:4.0-alpine
-    ports:
-      - "6379:6379"
-#    networks:
-#      - internal_network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-    volumes:
-      - ./redis:/data
+    networks:
+      - internal_network
+#    volumes:
+#      - ./redis:/data
 networks:
   external_network:
-#  internal_network:
-#    internal: true
+  internal_network:
+    internal: true

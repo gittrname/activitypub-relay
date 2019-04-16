@@ -86,6 +86,8 @@ module.exports = {
 
     var params = this.parseSignParams(req);
     var signed = this.signedStr(params['headers'], req);
+    //console.log(req);
+    //console.log(signed);
 
     var verify = crypto.createVerify(params['algorithm'].toUpperCase());
     verify.update(signed);
