@@ -6,7 +6,7 @@ var logger = require('morgan');
 var url = require('url');
 var os = require('os');
 
-var config = require('./config/settings');
+var config = require('./settings');
 
 var app = express();
 

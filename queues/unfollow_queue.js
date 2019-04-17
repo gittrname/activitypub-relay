@@ -7,8 +7,8 @@ var accountCache = require('./account_cache');
 var database = require('../database');
 var cache = require('../cache');
 
-var config = require('../config/settings');
-var keyPair = require('../config/relay_keypair.json');
+var config = require('../settings');
+var keyPair = require('../keypair/relay_keypair.json');
 
 //
 //
@@ -34,7 +34,7 @@ module.exports = function(job) {
   
         // 拒否応答
         return subscriptionMessage.sendActivity(
-          config.relay.keyId, account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
+            account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
       }
 
       // すでにRelay登録されていないか確認
@@ -64,7 +64,7 @@ module.exports = function(job) {
       // 承認リクエスト送付
       console.log('Send Accept Activity. targetId='+account['shared_inbox_url']);
       return subscriptionMessage.sendActivity(
-        account['shared_inbox_url'], activity.accept(client.body));
+         account['shared_inbox_url'], activity.accept(client.body));
     })
     .catch(function(err) {
       console.log(err.message);

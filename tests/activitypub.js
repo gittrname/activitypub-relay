@@ -4,7 +4,7 @@ var nock = require('nock');
 var Activity = require('../activitypub/activity');
 var SubscriptionMessage = require('../activitypub/subscription_message');
 
-var keyPair = require('../config/relay_keypair.json');
+var keyPair = require('../keypair/relay_keypair.json');
 
 // 
 // subscription_message

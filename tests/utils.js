@@ -2,7 +2,7 @@ var assert = require("chai").assert;
 var crypto = require('crypto');
 
 var Signature = require('../utils/signature_utilily');
-var keyPair = require('../config/relay_keypair.json');
+var keyPair = require('../keypair/relay_keypair.json');
 
 // 
 // follow queue test.

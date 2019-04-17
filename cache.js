@@ -1,6 +1,6 @@
 var LruCache = require('lru-cache');
 
-var config = require('./config/settings');
+var config = require('./settings');
 
 module.exports = new LruCache({
   max: config.cache.size,

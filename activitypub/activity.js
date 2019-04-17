@@ -9,25 +9,25 @@ var Activity = function(relay) {
 
 //
 // Follow Activity Object
-Activity.prototype.follow = function() {
+Activity.prototype.follow = function(actor) {
   return {
     '@context': 'https://www.w3.org/ns/activitystreams',
     'id':     this.relay.url+'/activities/'+uuid.v4(),
     'actor':  this.relay.actor,
     'type':   'Follow',
-    'object': "https://www.w3.org/ns/activitystreams#Public"
+    'object': actor
   };
 };
 
 //
 // UnFollow Activity Object
-Activity.prototype.unfollow = function() {
+Activity.prototype.unfollow = function(actor) {
   return {
     '@context': 'https://www.w3.org/ns/activitystreams',
     'id':     this.relay.url+'/activities/'+uuid.v4(),
     'actor':  this.relay.actor,
     'type':   'Undo',
-    'object': "https://www.w3.org/ns/activitystreams#Public"
+    'object': actor
   };
 };
 

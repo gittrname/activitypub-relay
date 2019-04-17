@@ -6,8 +6,8 @@ var accountCache = require('./account_cache');
 
 var database = require('../database');
 
-var config = require('../config/settings');
-var keyPair = require('../config/relay_keypair.json');
+var config = require('../settings');
+var keyPair = require('../keypair/relay_keypair.json');
 
 //
 //

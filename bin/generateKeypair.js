@@ -13,5 +13,5 @@ try {
   console.log('keypair is already created.');
 } catch (err) {
   var keyPair = generateRSAKeypair();
-  fs.writeFileSync('config/relay_keypair.json', JSON.stringify(keyPair));
+  fs.writeFileSync('keypair/relay_keypair.json', JSON.stringify(keyPair));
 }

@@ -6,15 +6,15 @@ var SubscriptionMessage = require('../activitypub/subscription_message');
 
 var accountCache = require('./account_cache');
 
-var config = require('../config/settings');
-var keyPair = require('../config/relay_keypair.json');
+var config = require('../settings');
+var keyPair = require('../keypair/relay_keypair.json');
 
 //
 //
 module.exports = function(job) {
 
   //
-  var subscriptionMessage = new SubscriptionMessage(keyPair.private);
+  var subscriptionMessage = new SubscriptionMessage(config.relay, keyPair.private);
   var activity = new Activity(config.relay);
       
   // request
@@ -43,9 +43,9 @@ module.exports = function(job) {
           
           //
           // フォローリクエスト送付
-          console.log('Request Follow Activity. target='+account['inbox_url']);
+          console.log('Request Follow Activity. target='+account['shared_inbox_url']);
           subscriptionMessage.sendActivity(
-            config.relay.keyId, account['inbox_url'], activity.follow());
+              account['shared_inbox_url'], activity.follow(account['uri']));
         });
     })
     .catch(function(err) {

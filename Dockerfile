@@ -16,6 +16,7 @@ RUN cd /relay \
   && npm install
 
 #
+VOLUME ["/relay/keypair"]
 WORKDIR /relay
 CMD ["npm", "start"]
 EXPOSE 3000

@@ -5,8 +5,8 @@ var assert = require("chai").assert;
 
 var Actor = require('../activitypub/actor');
 
-var keyPair = require('../config/relay_keypair.json');
-var config = require('../config/settings');
+var keyPair = require('../keypair/relay_keypair.json');
+var config = require('../settings');
 
 // 
 // webfinger test.

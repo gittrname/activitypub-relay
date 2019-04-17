@@ -1,7 +1,7 @@
 var Queue = require('bull');
 
 // 設定をロード
-var config = require('./config/settings');
+var config = require('./settings');
 
 // 各キューを生成
 var follow = new Queue('follow', config);

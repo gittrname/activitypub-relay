@@ -1,5 +1,5 @@
 // Update with your config settings.
-var config = require('./config/settings');
+var config = require('./settings');
 
 module.exports = {
   development: config.database,

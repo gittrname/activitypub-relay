@@ -10,8 +10,8 @@ var Activity = require('../activitypub/activity');
 var Worker = require('../worker');
 
 // 設定ロード
-var config = require('../config/settings');
-var keyPair = require('../config/relay_keypair.json');
+var config = require('../settings');
+var keyPair = require('../keypair/relay_keypair.json');
 
 
 //
