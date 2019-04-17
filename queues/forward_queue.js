@@ -27,14 +27,14 @@ module.exports = function(job) {
   return accountCache(signParams['keyId'])
     .then(function(account) {
         
-      // Signatureの正当性チェック
-      if (!Signature.verifyRequest(account['public_key'], client)) {
-        console.log('Invalid signature. keyId='+signParams['keyId']);
+      // // Signatureの正当性チェック
+      // if (!Signature.verifyRequest(account['public_key'], client)) {
+      //   console.log('Invalid signature. keyId='+signParams['keyId']);
   
-        // 拒否応答
-        return subscriptionMessage.sendActivity(
-          account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
-      }
+      //   // 拒否応答
+      //   return subscriptionMessage.sendActivity(
+      //     account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
+      // }
 
 
       // 登録アカウント一覧取得
