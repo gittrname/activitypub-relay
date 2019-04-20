@@ -4,11 +4,13 @@ var path = require('path');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
 var url = require('url');
-var os = require('os');
 
 var config = require('./settings');
 
 var app = express();
+
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
 
 app.use(logger('dev'));
 app.use(bodyParser.json({
@@ -39,7 +41,8 @@ app.use(function(req, res, next) {
 
 // web_service
 app.use('/', require('./routes/web_service'));
-
+// ui
+app.use('/ui', require('./routes/ui'));
 // api
 app.use('/api', require('./routes/api'));
 

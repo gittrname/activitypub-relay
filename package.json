@@ -17,6 +17,7 @@
     "config": "^2.0.1",
     "crypto": "^1.0.1",
     "debug": "~2.6.9",
+    "ejs": "^2.6.1",
     "express": "^4.16.4",
     "generate-rsa-keypair": "^0.1.2",
     "http-errors": "~1.6.2",
