@@ -36,15 +36,20 @@ module.exports = function(job) {
       }
 
       // すでにRelay登録されていないか確認
-      database('accounts')
+      database('relays')
         .select()
-        .where({url: account.url})
+        .where({
+          'account_id': account['id'],
+          'domain': account['domain']
+        })
         .then(function(rows) {
   
           if (rows.length <= 0) {
-            // DBに登録
-            return database('accounts')
-              .insert(account);
+            return database('relays')
+              .insert({
+                'account_id': account['id'],
+                'domain': account['domain']
+              });
           }
         });
 

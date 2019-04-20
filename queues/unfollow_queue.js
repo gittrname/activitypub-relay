@@ -38,9 +38,12 @@ module.exports = function(job) {
       }
 
       // すでにRelay登録されていないか確認
-      database('accounts')
+      database('relays')
         .select('id')
-        .where({url: account.url})
+        .where({
+          account_id: account['id'],
+          domain: account['domain']
+        })
         .then(function(rows) {
   
           if (rows.length <= 0) {
@@ -51,9 +54,11 @@ module.exports = function(job) {
             console.log('This relay is remove follow. targetId='+signParams['keyId']);
             //
             // DB削除
-            return database('accounts')
+            return database('relays')
               .delete()
-              .where({id: rows[0]['id']});
+              .where({
+                'id': rows[0]['id']
+              });
           }
         });
 

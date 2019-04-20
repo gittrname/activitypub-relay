@@ -34,6 +34,19 @@ module.exports = function(keyId) {
           }
         })
         .then(function(rows) {
+
+          if (!rows[0]['id']) {
+            // DBに登録
+            return database('accounts')
+                .insert(rows[0])
+                .returning('*');
+          } else {
+            // 取得したものを返却
+            return Promise.resolve(rows);
+          }
+        })
+        .then(function(rows) {
+
           // キャッシュに保存
           cache.set(keyId, rows[0]);
 

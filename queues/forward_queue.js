@@ -28,29 +28,63 @@ module.exports = function(job) {
         
       // // Signatureの正当性チェック
       // if (!Signature.verifyRequest(account['public_key'], client)) {
-      //   console.log('Invalid signature. keyId='+signParams['keyId']);
-  
+
       //   // 拒否応答
-      //   return subscriptionMessage.sendActivity(
+      //   subscriptionMessage.sendActivity(
       //     account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
+
+      //   throw new Error('Invalid signature. keyId='+signParams['keyId']);
+      // } else {
+
+      //   // アカウントを返却
+      //   return Promise.resolve(account);
       // }
+      return Promise.resolve(account);
 
+    })
+    .then(function(account) {
 
-      // 登録アカウント一覧取得
-      return database('accounts')
-        .select()
-        .whereNot({url: account.url})
+      // リレー先一覧取得
+      database('relays')
+        .innerJoin('accounts', 'relays.account_id', 'accounts.id')
+        .whereNot({'accounts.domain': account['domain']})
         .then(function(rows) {
           for(idx in rows) {
             // 転送
-            console.log('Send Activity.'
+            console.log('Forward Activity.'
               +' form='+account['uri']+' to='+rows[idx]['inbox_url']);
             subscriptionMessage.sendActivity(
                 rows[idx]['inbox_url'], Activity.parse(client.body));  // 単純フォーワード
           }
 
-          return Promise.resolve();
+          return Promise.resolve(account);
         });
+
+      // 
+      return Promise.resolve(account);
+    })
+    .then(function(account) {
+
+      // フォロー先一覧取得
+      database('followers')
+        .innerJoin('accounts', 'followers.account_id', 'accounts.id')
+        .whereNot({'accounts.domain': account['domain']})
+        .then(function(rows) {
+          for(idx in rows) {
+            // 転送
+            console.log('Boost Activity.'
+              +' form='+account['uri']+' to='+rows[idx]['inbox_url']);
+            subscriptionMessage.sendActivity(
+                rows[idx]['inbox_url'], Activity.parse(client.body));  // 単純フォーワード
+            // subscriptionMessage.sendActivity(
+            //     rows[idx]['inbox_url'], activity.announce(client.body));  // ブースト
+          }
+
+          return Promise.resolve(rows);
+        });
+
+      // 
+      return Promise.resolve(account);
     })
     .catch(function(err) {
       console.log(err);

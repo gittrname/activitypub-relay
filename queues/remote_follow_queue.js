@@ -6,8 +6,9 @@ var SubscriptionMessage = require('../activitypub/subscription_message');
 
 var accountCache = require('./account_cache');
 
+var database = require('../database');
+
 var config = require('../settings');
-var keyPair = require('../keypair/relay_keypair.json');
 
 //
 //
@@ -40,6 +41,24 @@ module.exports = function(job) {
       var accountObj = selfObj(obj.links);
       return accountCache(accountObj.href)
         .then(function(account) {
+
+          // すでにRelay登録されていないか確認
+          database('followers')
+            .select()
+            .where({
+              'account_id': account['id'],
+              'domain': account['domain']
+            })
+            .then(function(rows) {
+      
+              if (rows.length <= 0) {
+                return database('followers')
+                  .insert({
+                    'account_id': account['id'],
+                    'domain': account['domain']
+                  });
+              }
+            });
           
           //
           // フォローリクエスト送付
