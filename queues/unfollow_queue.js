@@ -8,7 +8,6 @@ var database = require('../database');
 var cache = require('../cache');
 
 var config = require('../settings');
-var keyPair = require('../keypair/relay_keypair.json');
 
 //
 //
