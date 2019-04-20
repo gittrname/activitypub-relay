@@ -13,10 +13,11 @@ ENV NODE_ENV=production
 RUN mkdir /relay
 COPY . /relay
 RUN cd /relay \
+  && rm -rf node_modules \
+  && rm -rf build \
   && npm install
 
 #
-VOLUME ["/relay/keypair"]
 WORKDIR /relay
 CMD ["npm", "start"]
 EXPOSE 3000
