@@ -11,7 +11,6 @@ var Worker = require('../worker');
 
 // 設定ロード
 var config = require('../settings');
-var keyPair = require('../keypair/relay_keypair.json');
 
 
 //
@@ -60,7 +59,7 @@ router.get('/actor', function (req, res, next) {
 
   //
   res.set('Content-Type', 'application/activity+json')
-    .send(JSON.stringify(actor.myself(keyPair.public)))
+    .send(JSON.stringify(actor.myself(config.relay.public)))
     .end();
 });
 

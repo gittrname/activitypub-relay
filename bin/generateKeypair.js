@@ -9,9 +9,6 @@ console.log('Generate Keypair.');
 /*
  * 署名用キーペア作成
  */
-try {
-  console.log('keypair is already created.');
-} catch (err) {
-  var keyPair = generateRSAKeypair();
-  fs.writeFileSync('keypair/relay_keypair.json', JSON.stringify(keyPair));
-}
+var keyPair = generateRSAKeypair();
+console.log("private key: "+keyPair.private);
+console.log("public key: "+keyPaire.public);

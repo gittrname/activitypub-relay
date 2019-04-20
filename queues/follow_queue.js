@@ -7,14 +7,13 @@ var accountCache = require('./account_cache');
 var database = require('../database');
 
 var config = require('../settings');
-var keyPair = require('../keypair/relay_keypair.json');
 
 //
 //
 module.exports = function(job) {
 
   //
-  var subscriptionMessage = new SubscriptionMessage(config.relay, keyPair.private);
+  var subscriptionMessage = new SubscriptionMessage(config.relay.actor, config.relay.privateKey);
   var activity = new Activity(config.relay);
   
   // Signatation Params

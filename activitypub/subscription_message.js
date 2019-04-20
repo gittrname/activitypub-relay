@@ -4,9 +4,9 @@ var request = require('request');
 var Signature = require('../utils/signature_utilily');
 
 
-var subscription_message = function(relay, privateKey) {
+var subscription_message = function(actor, privateKey) {
 
-  this.keyId = relay.actor+'#main-key';
+  this.keyId = actor+'#main-key';
   this.privateKey = privateKey;
 
   this.headers = {

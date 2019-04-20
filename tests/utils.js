@@ -2,7 +2,6 @@ var assert = require("chai").assert;
 var crypto = require('crypto');
 
 var Signature = require('../utils/signature_utilily');
-var keyPair = require('../keypair/relay_keypair.json');
 
 // 
 // follow queue test.
@@ -154,8 +153,8 @@ describe('signature_utils', function() {
     };
     req.headers['digest'] = Signature.digest(data);
 
-    var signReq = Signature.signRequest(keyId, keyPair.private, req);
-    assert.isTrue(Signature.verifyRequest(keyPair.public, signReq));
+    var signReq = Signature.signRequest(keyId, config.relay.private, req);
+    assert.isTrue(Signature.verifyRequest(config.relay.public, signReq));
 
     done();
   });

@@ -4,8 +4,6 @@ var nock = require('nock');
 var Activity = require('../activitypub/activity');
 var SubscriptionMessage = require('../activitypub/subscription_message');
 
-var keyPair = require('../keypair/relay_keypair.json');
-
 // 
 // subscription_message
 describe('subscription_message', function() {
@@ -30,10 +28,8 @@ describe('subscription_message', function() {
       .post("/inbox", activityObj)
       .reply(202);
 
-    var subscriptionMessage = new SubscriptionMessage({
-      domain: 'relay.example.com',
-      url: 'https://relay.example.com'
-    }, keyPair.private);
+    var subscriptionMessage = new SubscriptionMessage(
+      'relay.example.com', 'https://relay.example.com/actor');
 
     return subscriptionMessage
       .sendActivity('https://pub.example.com/inbox', activityObj)

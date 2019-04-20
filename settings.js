@@ -10,6 +10,8 @@ module.exports = {
     actor: relayUrl.protocol+'//'+relayUrl.host+'/actor',
     keyId: relayUrl.protocol+'//'+relayUrl.host+'/actor#main-key',
     account: 'acct:relay@'+relayUrl.host,
+    privateKey: (process.env.PRIVATE_KEY) ? process.env.PRIVATE_KEY : "not private key.",
+    publicKey: (process.env.PUBLIC_KEY) ? process.env.PUBLIC_KEY : "not public key."
   },
 
   // redis

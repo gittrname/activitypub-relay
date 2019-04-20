@@ -54,7 +54,7 @@ describe('#get(/actor)', function() {
       .expect(200, function(err, res) {
 
         var actor = new Actor(config.relay.url);
-        assert(res.body, actor.myself(keyPair.public));
+        assert(res.body, actor.myself(config.relay.public));
 
         done();
       });

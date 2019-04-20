@@ -10,15 +10,17 @@
             "name": "Launch Program",
             "program": "${workspaceFolder}/bin/www",
             "env": {
-              "NODE_ENV":"development",
-              "RELAY_URL":"https://dev-relay.mstdn-jp.site",
-              "REDIS_HOST":"127.0.0.1",
-              "REDIS_PORT":"6379",
-              "DB_HOST":"127.0.0.1",
-              "DB_PORT":"5432",
-              "DB_NAME":"postgres",
-              "DB_USER":"postgres",
-              "DB_PASS":"postgres"
+              "NODE_ENV":"${env:NODE_ENV}",
+              "RELAY_URL":"${env:RELAY_URL}",
+              "PRIVATE_KEY": "${env:PRIVATE_KEY}",
+              "PUBLIC_KEY": "${env:PUBLIC_KEY}",
+              "REDIS_HOST":"${env:REDIS_HOST}",
+              "REDIS_PORT":"${env:REDIS_PORT}",
+              "DB_HOST":"${env:DB_HOST}",
+              "DB_PORT":"${env:DB_PORT}",
+              "DB_NAME":"${env:DB_NAME}",
+              "DB_USER":"${env:DB_USER}",
+              "DB_PASS":"${env:DB_PASS}",
             }
         }
     ]
