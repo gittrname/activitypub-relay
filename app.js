@@ -39,10 +39,28 @@ app.use(function(req, res, next) {
   next();
 });
 
+console.log("・relay")
+console.log("　host: "+config.relay.url);
+console.log("　privatekey: "+config.relay.privateKey);
+console.log("　publickey: "+config.relay.publicKey);
+
+console.log("・redis")
+console.log("　host: "+config.redis.host);
+console.log("　port: "+config.redis.port);
+
+console.log("・database")
+console.log("　host: "+config.database.connection.host);
+console.log("　port: "+config.database.connection.port);
+console.log("　name: "+config.database.connection.database);
+
+
 // web_service
 app.use('/', require('./routes/web_service'));
 // ui
 app.use('/ui', require('./routes/ui'));
+// admin
+app.use('/admin', require('./routes/admin'));
+
 // api
 app.use('/api', require('./routes/api'));
 
