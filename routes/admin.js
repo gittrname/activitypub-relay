@@ -20,7 +20,7 @@ router.get("/", function(req, res, next) {
 
 //
 // Instanceページ
-router.use("/instances", function(req, res, next) {
+router.use("/instances/:page?", function(req, res, next) {
 
   var page = req.param('page', 1);
 
