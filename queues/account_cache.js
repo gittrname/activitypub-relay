@@ -90,7 +90,7 @@ var accountRequest = function(keyId) {
         'username': data.preferredUsername,
         'domain': res.request.host,
         'private_key': '',
-        'public_key': data.publicKey.publicKeyPem,
+        'public_key': (data.publicKey)?data.publicKey.publicKeyPem:'',
         
         'display_name': (data.name)?data.name:'',
         'note': (data.summary)?data.summary:'',
@@ -101,7 +101,7 @@ var accountRequest = function(keyId) {
         
         'inbox_url': data.inbox,
         'outbox_url': data.outbox,
-        'shared_inbox_url': data.endpoints.sharedInbox,
+        'shared_inbox_url': (data.endpoints)?data.endpoints.sharedInbox:'',
         'shared_outbox_url': '',
         'followers_url': data.followers,
         'following_url': data.following,
