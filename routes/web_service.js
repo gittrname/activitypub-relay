@@ -129,6 +129,7 @@ router.post('(/|//)inbox', function (req, res, next) {
     case "Update":
     case "Delete":
     case "Announce":
+    case "Move":
       console.log('queuing forward request. [actor:'+activity.actor+']');
 
       // // キューに格納
