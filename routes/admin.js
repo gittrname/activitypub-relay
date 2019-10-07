@@ -35,6 +35,22 @@ router.use("/instances/:page?", function(req, res, next) {
 });
 
 //
+// Accountページ
+router.use("/accounts/:page?", function(req, res, next) {
+
+  var page = req.param('page', 1);
+
+  database('accounts')
+    .paginate(20, page, true)
+    .then(function(result) {
+      res.render("admin/account", {'result': result});
+    })
+    .catch(function(err) {
+      next(err);
+    });
+});
+
+//
 // Queueページ
 router.use("/queues", Arena({
   queues: [
