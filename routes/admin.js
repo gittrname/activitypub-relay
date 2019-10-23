@@ -23,11 +23,13 @@ router.get("/", function(req, res, next) {
 router.use("/instances/:page?", function(req, res, next) {
 
   var page = req.param('page', 1);
+  var keyword = req.param('k', "");
 
   database('relays')
+    .where('domain', 'like', "%" + keyword + "%")
     .paginate(20, page, true)
     .then(function(result) {
-      res.render("admin/instance", {'result': result});
+      res.render("admin/instance", {'keyword': keyword, 'result': result});
     })
     .catch(function(err) {
       next(err);
@@ -39,11 +41,14 @@ router.use("/instances/:page?", function(req, res, next) {
 router.use("/accounts/:page?", function(req, res, next) {
 
   var page = req.param('page', 1);
+  var keyword = req.param('k', "");
 
   database('accounts')
+    .where('username', 'like', "%" + keyword + "%")
+    .orWhere('domain', 'like', "%" + keyword + "%")
     .paginate(20, page, true)
     .then(function(result) {
-      res.render("admin/account", {'result': result});
+      res.render("admin/account", {'keyword': keyword, 'result': result});
     })
     .catch(function(err) {
       next(err);
