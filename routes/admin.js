@@ -11,16 +11,42 @@ var config = require('../settings');
 // キューイング管理
 const Arena = require('bull-arena');
 
+// 認証機構
+var passport = require('passport');
+function isAuthenticated(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  } else {
+    res.redirect("/admin/login");
+  }
+}
+
+//
+// ログイン
+router.get("/login", function(req, res, next) {
+  res.render("admin/login");
+});
+router.post("/login", passport.authenticate("local",{
+  successRedirect: "/admin",
+  failureRedirect: "/admin/login",
+  failureFlash: true
+}));
+//
+// ログアウト
+router.get("/logout", function(req, res, next) {
+  req.logout();
+  res.redirect("/admin/login")
+});
 
 //
 // Topページ
-router.get("/", function(req, res, next) {
-  res.render("admin/dashboard");
+router.get("/", isAuthenticated, function(req, res, next) {
+    res.render("admin/dashboard");
 });
 
 //
 // Instanceページ
-router.use("/instances/:page?", function(req, res, next) {
+router.use("/instances/:page?", isAuthenticated, function(req, res, next) {
 
   var page = req.param('page', 1);
   var keyword = req.param('k', "");
@@ -38,7 +64,7 @@ router.use("/instances/:page?", function(req, res, next) {
 
 //
 // Accountページ
-router.use("/accounts/:page?", function(req, res, next) {
+router.use("/accounts/:page?", isAuthenticated, function(req, res, next) {
 
   var page = req.param('page', 1);
   var keyword = req.param('k', "");
@@ -57,7 +83,7 @@ router.use("/accounts/:page?", function(req, res, next) {
 
 //
 // Queueページ
-router.use("/queues", Arena({
+router.use("/queues", isAuthenticated, Arena({
   queues: [
     {
       name: "followQueue",
