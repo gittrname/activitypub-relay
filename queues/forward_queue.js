@@ -14,11 +14,13 @@ module.exports = function(job) {
 
   //
   var subscriptionMessage = new SubscriptionMessage(config.relay.actor, config.relay.privateKey);
-  var activity = new Activity(config.relay);
       
   // Signatation Params
   var client = job.data.client;
   var signParams = Signature.parseSignParams(client);
+
+  // 転送Activity
+  var forwardActivity = Activity.parse(client.body);
 
   console.log('start forward queue process. keyId='+signParams['keyId']);
 
@@ -28,6 +30,7 @@ module.exports = function(job) {
         
       // // Signatureの正当性チェック
       // if (!Signature.verifyRequest(account['public_key'], client)) {
+      //   var activity = new Activity(config.relay);
 
       //   // 拒否応答
       //   subscriptionMessage.sendActivity(
@@ -54,7 +57,7 @@ module.exports = function(job) {
             console.log('Forward Activity.'
               +' form='+account['uri']+' to='+rows[idx]['inbox_url']);
             subscriptionMessage.sendActivity(
-                rows[idx]['inbox_url'], Activity.parse(client.body));  // 単純フォーワード
+                rows[idx]['inbox_url'], forwardActivity);  // 単純フォーワード
           }
 
           return Promise.resolve(account);
@@ -75,15 +78,38 @@ module.exports = function(job) {
             console.log('Boost Activity.'
               +' form='+account['uri']+' to='+rows[idx]['inbox_url']);
             subscriptionMessage.sendActivity(
-                rows[idx]['inbox_url'], Activity.parse(client.body));  // 単純フォーワード
+                rows[idx]['inbox_url'], forwardActivity);  // 単純フォーワード
             // subscriptionMessage.sendActivity(
-            //     rows[idx]['inbox_url'], activity.announce(client.body));  // ブースト
+            //     rows[idx]['inbox_url'], forwardActivity);  // ブースト
           }
 
           return Promise.resolve(rows);
         });
 
       // 
+      return Promise.resolve(account);
+    })
+    .then(function(account) {
+
+      // タグ付き投稿であるか確認
+      if (!forwardActivity.object.tag) {
+        return Promise.resolve(account);
+      }
+
+      // タグ登録
+      for(idx in forwardActivity.object.tag) {
+        console.log('insert tag.['+forwardActivity.object.tag[idx].name+']');
+
+        database('tags').insert({
+          type: forwardActivity.object.tag[idx].type,
+          href: forwardActivity.object.tag[idx].href,
+          name: forwardActivity.object.tag[idx].name
+        })
+        .catch(function(err) {
+          console.log(err);
+        });
+      }
+
       return Promise.resolve(account);
     })
     .catch(function(err) {

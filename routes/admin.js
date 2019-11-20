@@ -47,61 +47,20 @@ router.get("/", isAuthenticated, function(req, res, next) {
 
 //
 // Instanceページ
-router.use("/instances/:page?", isAuthenticated, function(req, res, next) {
-
-  var page = req.param('page', 1);
-  var keyword = req.param('k', "");
-
-  database('relays')
-    .where('domain', 'like', "%" + keyword + "%")
-    .paginate(20, page, true)
-    .then(function(result) {
-      res.render("admin/instance", {'keyword': keyword, 'result': result});
-    })
-    .catch(function(err) {
-      next(err);
-    });
+router.use("/instances", isAuthenticated, function(req, res, next) {
+  res.render("admin/instance");
 });
 
 //
 // Accountページ
-router.use("/accounts/:page?", isAuthenticated, function(req, res, next) {
-
-  var page = req.param('page', 1);
-  var keyword = req.param('k', "");
-
-  database('accounts')
-    .where('username', 'like', "%" + keyword + "%")
-    .orWhere('domain', 'like', "%" + keyword + "%")
-    .paginate(20, page, true)
-    .then(function(result) {
-      res.render("admin/account", {'keyword': keyword, 'result': result});
-    })
-    .catch(function(err) {
-      next(err);
-    });
+router.use("/accounts", isAuthenticated, function(req, res, next) {
+  res.render("admin/account");
 });
 
 //
 // Tagページ
-router.use("/tags/:page?", isAuthenticated, function(req, res, next) {
-
-  var page = req.param('page', 1);
-  var keyword = req.param('k', "");
-
-  database('tags')
-    .select('name')
-    .count({count: 'name'})
-    .max({last_use: 'updated_at'})
-    .where('name', 'like', "%" + keyword + "%")
-    .groupBy('name')
-    .paginate(20, page, true)
-    .then(function(result) {
-      res.render("admin/tag", {'keyword': keyword, 'result': result});
-    })
-    .catch(function(err) {
-      next(err);
-    });
+router.use("/tags", isAuthenticated, function(req, res, next) {
+  res.render("admin/tag");
 });
 
 //

@@ -3,7 +3,7 @@
 <meta http-equiv="content-type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Dashboard Template · Bootstrap</title>
+    <title>Instance Page</title>
 
     <!-- Bootstrap core CSS -->
     <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
@@ -25,7 +25,7 @@
       }
     </style>
     <!-- Custom styles for this template -->
-    <link href="/admin/dashboard.css" rel="stylesheet">
+    <link href="/admin/datatables.min.css" rel="stylesheet">
 
     <style type="text/css">/* Chart.js */
       @-webkit-keyframes chartjs-render-animation{from{opacity:0.99}to{opacity:1}}
@@ -42,81 +42,51 @@
       <%# サイドメニュー %>
       <%- include('./_sidemenu') %>
 
-      <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4"><div style="position: absolute; inset: 0px; overflow: hidden; pointer-events: none; visibility: hidden; z-index: -1;" class="chartjs-size-monitor"><div class="chartjs-size-monitor-expand" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:1000000px;height:1000000px;left:0;top:0"></div></div><div class="chartjs-size-monitor-shrink" style="position:absolute;left:0;top:0;right:0;bottom:0;overflow:hidden;pointer-events:none;visibility:hidden;z-index:-1;"><div style="position:absolute;width:200%;height:200%;left:0; top:0"></div></div></div>
+      <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
 
         <h1>Instance list</h1>
 
-        <div class="col-12 clearfix">
-          <form class="form-inline float-right" action="/admin/instances">
-            <div class="input-group">
-              <input type="text" class="form-control" id="search-textbox" name="k" value="<%= keyword %>" placeholder="Search Keyword." />
-              <span class="input-group-btn">
-                <button class="btn btn btn-outline-secondary" type="submit" id="search-btn">
-                  <svg id="i-search" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="12" height="12" fill="none" stroke="currentcolor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
-                      <circle cx="14" cy="14" r="12" />
-                      <path d="M23 23 L30 30"  />
-                  </svg>
-                </button>
-              </span>
-            </div>
-          </form>
-
-          <div class="table-responsive">
-            <table class="table table-striped table-sm">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Manage</th>
-                </tr>
-              </thead>
-              <tbody>
-              <% for(var idx in result.data) { %>
-                <tr>
-                  <td><%= result.data[idx]['domain'] %></td>
-                  <td>
-                    <button type="button" class="btn btn-light btn-sm">ブロック</button>
-                    <button type="button" class="btn btn-dark btn-sm">削除</button>
-                  </td>
-                </tr>
-              <% } %>
-              </tbody>
-            </table>
-
-            <nav aria-label="Page navigation">
-              <ul class="pagination">
-              <% if (result.current_page > 1) { %>
-                <li class="page-item"><a class="page-link" href="/admin/instances/<%= result.pre_page %>">Prev</a></li>
-              <% } else { %>
-                <li class="page-item disabled"><a class="page-link" href="#">Prev</a></li>
-              <% } %>
-              <% for(var i=1; i <= result.last_page; i++) { %>
-                <% if(i == result.current_page) { %>
-                <li class="page-item active"><a class="page-link" href="/admin/instances/<%= i %>"><%= i %></a></li>
-                <% } else { %>
-                <li class="page-item"><a class="page-link" href="/admin/instances/<%= i %>"><%= i %></a></li>
-                <% } %>
-              <% } %>
-              <% if (result.last_page > 1 && result.current_page == result.last_page) { %>
-                <li class="page-item"><a class="page-link" href="/admin/instances/<%= result.last_page %>">Next</a></li>
-              <% } else { %>
-                <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
-              <% } %>
-              </ul>
-            </nav>
-          </div>
+        <div class="table-responsive">
+          <table id="instance-table" class="table table-striped table-sm" style="width: 100%">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Create</th>
+                <th>Update</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
         </div>
+        
       </main>
     </div>
   </div>
 
   <!-- Bootstrap core JavaScript -->
-  <script src="vendor/jquery/jquery.min.js"></script>
-  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="/vendor/jquery/jquery.min.js"></script>
+  <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
 
   <!-- Dashboard JavaScript -->
-  <script src="/admin/feather.js"></script>
-  <script src="/admin/Chart.js"></script>
-  <script src="/admin/dashboard.js"></script>
+  <script src="/admin/datatables.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      $("#instance-table").DataTable({
+        "processing": true,
+        "serverSide": true,
+        "ordering": false,
+        "info":     false,
+        "ajax": "/api/instances",
+        "columns": [
+          {"data": "domain"},
+          {"data": "created_at"},
+          {"data": "updated_at"}
+        ]
+      });
+    });
+  </script>
 
   </body>
 </html>
