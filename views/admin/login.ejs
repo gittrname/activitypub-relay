@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en" >
+  <head>
+    <title>Signin Template for Bootstrap · Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/vendor/admin/css/signin.css" rel="stylesheet">
+  </head>
+  <body  class="text-center" >
+    <a id="skippy" class="sr-only sr-only-focusable" href="#content">
+    <div class="container">
+      <span class="skiplink-text">Skip to main content</span>
+    </div>
+  </a>
+
+    <form class="form-signin" action="/admin/login" method="post">
+      <h1 class="h3 mb-3 font-weight-normal">管理者ログイン</h1>
+      <label for="inputUsername" class="sr-only">Username</label>
+      <input type="text" id="inputUsername" name="username" class="form-control" placeholder="Username" required autofocus>
+      <label for="inputPassword" class="sr-only">Password</label>
+      <input type="password" id="inputPassword" name="password" class="form-control" placeholder="Password" required>
+      <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    </form>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="/vendor/jquery/jquery.min.js"></script>
+    <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script src="/vendor/admin/js/vendor/clipboard.min.js"></script>
+    <script src="/vendor/admin/js/vendor/bs-custom-file-input.min.js"></script>
+    <script src="/vendor/admin/js/src/application.js"></script>
+    <script src="/vendor/admin/js/src/search.js"></script>
+    <script src="/vendor/admin/js/src/ie-emulation-modes-warning.js"></script>
+  </body>
+</html>

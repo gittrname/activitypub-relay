@@ -50,5 +50,12 @@ module.exports = {
   cache: {
     size:  (process.env.CACHE_SIZE) ? Number(process.env.CACHE_SIZE): 100,
     limit: 60 * 60 * 1000 // 1H
+  },
+
+
+  // admin page
+  admin: {
+    username: (process.env.ADMIN_USER) ? process.env.ADMIN_USER: 'admin',
+    password: (process.env.ADMIN_PASS) ? process.env.ADMIN_PASS: 'relay'
   }
 };

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Dashboard Template · Bootstrap</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+    <!-- Custom styles for this template -->
+    <link href="/admin/datatables.min.css" rel="stylesheet">
+
+    <style type="text/css">/* Chart.js */
+      @-webkit-keyframes chartjs-render-animation{from{opacity:0.99}to{opacity:1}}
+      @keyframes chartjs-render-animation{from{opacity:0.99}to{opacity:1}}.chartjs-render-monitor{-webkit-animation:chartjs-render-animation 0.001s;animation:chartjs-render-animation 0.001s;}
+    </style>
+  </head>
+  <body>
+  <%# ヘッダー %>
+  <%- include('./_header') %>
+
+  <div class="container-fluid">
+    <div class="row">
+
+      <%# サイドメニュー %>
+      <%- include('./_sidemenu') %>
+
+      <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+
+        <h1>Tag list</h1>
+
+        <div class="table-responsive">
+          <table id="tag-table" class="table table-striped table-sm" style="width: 100%">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Count</th>
+                <th>Last Use</th>
+              </tr>
+            </thead>
+            <tbody>
+            </tbody>
+          </table>
+        </div>
+        
+      </main>
+    </div>
+  </div>
+
+  <!-- Bootstrap core JavaScript -->
+  <script src="/vendor/jquery/jquery.min.js"></script>
+  <script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Dashboard JavaScript -->
+  <script src="/admin/datatables.min.js"></script>
+  <script type="text/javascript">
+    $(function() {
+      $("#tag-table").DataTable({
+        "processing": true,
+        "serverSide": true,
+        "ordering": false,
+        "info":     false,
+        "ajax": "/api/tags",
+        "columns": [
+          {"data": "name"},
+          {"data": "count"},
+          {"data": "last_use"}
+        ]
+      });
+    });
+  </script>
+
+  </body>
+</html>

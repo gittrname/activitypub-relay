@@ -1,18 +1,23 @@
 var createError = require('http-errors');
 var express = require('express');
+var session = require('express-session');
 var path = require('path');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
 var url = require('url');
+var passport = require('passport');
+var formAuth = require('./authentication/form_authentication');
 
 var config = require('./settings');
 
 var app = express();
 
+// viewエンジン
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
-
+// ログレベル
 app.use(logger('dev'));
+// パーサー
 app.use(bodyParser.json({
   type: [
     'application/json',
@@ -25,6 +30,19 @@ app.use(bodyParser.json({
     }
   }
 }));
+// セッション
+app.use(session({secret: 'relay'}));
+// 認証機能
+passport.serializeUser(function(user, done) {
+  done(null, user);
+});
+passport.deserializeUser(function(user, done) {
+  done(null, user);
+})
+passport.use(formAuth);
+app.use(passport.initialize());
+app.use(passport.session());
+// 静的ファイル
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -39,10 +57,28 @@ app.use(function(req, res, next) {
   next();
 });
 
+console.log("・relay")
+console.log("　host: "+config.relay.url);
+console.log("　privatekey: "+config.relay.privateKey);
+console.log("　publickey: "+config.relay.publicKey);
+
+console.log("・redis")
+console.log("　host: "+config.redis.host);
+console.log("　port: "+config.redis.port);
+
+console.log("・database")
+console.log("　host: "+config.database.connection.host);
+console.log("　port: "+config.database.connection.port);
+console.log("　name: "+config.database.connection.database);
+
+
 // web_service
 app.use('/', require('./routes/web_service'));
 // ui
 app.use('/ui', require('./routes/ui'));
+// admin
+app.use('/admin', require('./routes/admin'));
+
 // api
 app.use('/api', require('./routes/api'));
 
