@@ -77,10 +77,10 @@ module.exports = function(job) {
             // 転送
             console.log('Boost Activity.'
               +' form='+account['uri']+' to='+rows[idx]['inbox_url']);
+            //subscriptionMessage.sendActivity(
+            //    rows[idx]['inbox_url'], forwardActivity);  // 単純フォーワード
             subscriptionMessage.sendActivity(
-                rows[idx]['inbox_url'], forwardActivity);  // 単純フォーワード
-            // subscriptionMessage.sendActivity(
-            //     rows[idx]['inbox_url'], forwardActivity);  // ブースト
+                rows[idx]['shared_inbox_url'], forwardActivity);  // ブースト
           }
 
           return Promise.resolve(rows);
