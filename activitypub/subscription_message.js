@@ -43,7 +43,8 @@ subscription_message.prototype.sendActivity = function(inboxUrl, activity){
     request(options, function(err, res, data) {
       
       if (err) {
-        console.log(err.message);
+        console.log("request fail.["+options.inboxUrl+"]");
+        console.error(err.message);
         return reject(err);
       }
 

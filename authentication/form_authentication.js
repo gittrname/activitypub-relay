@@ -11,12 +11,13 @@ module.exports = new LocalStrategy({
   passReqToCallback: true,
   session: true,
 }, function(req, username, password, done) {
+  console.log("username:"+username+", password:"+password);
   if (username === config.admin.username
     && password === config.admin.password) {
-    console.log("login success.")
-    return done(null, username)
+    console.log("login success.");
+    return done(null, username);
   } else {
-    console.log("login fail.")
+    console.log("login fail.");
     return done(null, false);
   }
 });

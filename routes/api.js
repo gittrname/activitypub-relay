@@ -86,21 +86,31 @@ router.use("/instances", isAuthenticated, function(req, res, next) {
 
   var search = (req.params.search)?req.params.search:{value:"", regex:""};
 
-  database('relays')
-    .where('domain', 'like', search.value + "%")
-    .limit(length)
-    .paginate({perPage:start, isLengthAware:true})
-    .then(function(result) {
-      res.json({
-        "draw": result.pagination.currentPage,
-        "recordsTotal": result.pagination.total,
-        "recordsFiltered": result.pagination.total,
-        "data": result.data
-      });
-    })
-    .catch(function(err) {
-      next(err);
+  Promise.all([
+    database('relays')
+      .where('domain', 'like', search.value + "%")
+    . limit(length)
+      .offset(start)
+      .select(),
+    database('relays')
+      .count()
+      .first(),
+    database('relays')
+      .where('domain', 'like', search.value + "%")
+      .count()
+      .first(),
+  ])
+  .then(function(result) {
+    res.json({
+      "draw": req.query.draw + 1,
+      "recordsTotal": Number(result[1].count),
+      "recordsFiltered": Number(result[2].count),
+      "data": result[0]
     });
+  })
+  .catch(function(err) {
+    next(err);
+  });
 });
 
 //
@@ -150,25 +160,33 @@ router.use("/tags", isAuthenticated, function(req, res, next) {
 
   var search = (req.params.search)?req.params.search:{value:"", regex:""};
 
-  database('tags')
-    .select('name')
-    .count({count: 'name'})
-    .max({last_use: 'updated_at'})
-    .where('name', 'like', search.value + "%")
-    .where('type', 'Hashtag')
-    .groupBy('name')
-    .paginate({perPage:length, currentPage:start, isFromStart:true, isLengthAware:true})
-    .then(function(result) {
-      res.json({
-        "draw": result.pagination.currentPage,
-        "recordsTotal": result.pagination.total,
-        "recordsFiltered": result.pagination.total,
-        "data": result.data
-      });
-    })
-    .catch(function(err) {
-      next(err);
+  Promise.all([
+    database('tags')
+      .where('name', 'like', search.value + "%")
+      .where('type', 'Hashtag')
+      .groupBy('name')
+      .limit(length)
+      .offset(start)
+      .select(),
+    database('tags')
+      .count()
+      .first(),
+    database('tags')
+      .where('name', 'like', search.value + "%")
+      .count()
+      .first(),
+  ])
+  .then(function(result) {
+    res.json({
+      "draw": req.query.draw + 1,
+      "recordsTotal": Number(result[1].count),
+      "recordsFiltered": Number(result[2].count),
+      "data": result[0]
     });
+  })
+  .catch(function(err) {
+    next(err);
+  });
 });
 
 
