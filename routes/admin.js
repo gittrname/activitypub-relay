@@ -3,9 +3,6 @@ var database = require('../database');
 
 var router = express.Router();
 
-require('knex-paginator')(database);
-require('date-utils');
-
 // 設定ロード
 var config = require('../settings');
 

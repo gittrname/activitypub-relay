@@ -1,7 +1,9 @@
-var Knex = require('knex');
+const Knex = require('knex');
 
 // 設定をロード
-var config = require('./settings');
+const config = require('./settings');
 
-// DBインスタンス生成
-module.exports = Knex(config.database);
+// インスタンス初期化
+const database = Knex(config.database);
+
+module.exports = database;

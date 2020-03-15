@@ -14,8 +14,10 @@
   "dependencies": {
     "body-parser": "^1.18.3",
     "bull": "^3.7.0",
+    "bull-arena": "^2.6.4",
     "config": "^2.0.1",
     "crypto": "^1.0.1",
+    "date-utils": "^1.2.1",
     "debug": "~2.6.9",
     "ejs": "^2.6.1",
     "express": "^4.16.4",
@@ -23,6 +25,7 @@
     "generate-rsa-keypair": "^0.1.2",
     "http-errors": "~1.6.2",
     "knex": "^0.20.0",
+    "knex-paginate": "^1.1.0",
     "lru-cache": "^5.1.1",
     "morgan": "~1.9.0",
     "node-uuid": "^1.4.8",
