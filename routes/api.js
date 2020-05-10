@@ -81,10 +81,10 @@ function isAuthenticated(req, res, next) {
 // インスタンス一覧取得
 router.use("/instances", isAuthenticated, function(req, res, next) {
 
-  var start = (req.params.start)?req.params.start:0;
-  var length = (req.params.length)?req.params.length:10;
+  var start = (req.query.start)?req.query.start:0;
+  var length = (req.query.length)?req.query.length:10;
 
-  var search = (req.params.search)?req.params.search:{value:"", regex:""};
+  var search = (req.query.search)?req.query.search:{value:"", regex:""};
 
   Promise.all([
     database('relays')
@@ -102,7 +102,7 @@ router.use("/instances", isAuthenticated, function(req, res, next) {
   ])
   .then(function(result) {
     res.json({
-      "draw": req.query.draw + 1,
+      "draw": Number(req.query.draw),
       "recordsTotal": Number(result[1].count),
       "recordsFiltered": Number(result[2].count),
       "data": result[0]
@@ -140,7 +140,7 @@ router.use("/accounts", isAuthenticated, function(req, res, next) {
   ])
   .then(function(result) {
     res.json({
-      "draw": req.query.draw + 1,
+      "draw": Number(req.query.draw),
       "recordsTotal": Number(result[1].count),
       "recordsFiltered": Number(result[2].count),
       "data": result[0]
@@ -155,13 +155,16 @@ router.use("/accounts", isAuthenticated, function(req, res, next) {
 // タグ一覧取得
 router.use("/tags", isAuthenticated, function(req, res, next) {
 
-  var start = (req.params.start)?req.params.start:0;
-  var length = (req.params.length)?req.params.length:10;
+  var start = (req.query.start)?req.query.start:0;
+  var length = (req.query.length)?req.query.length:10;
 
-  var search = (req.params.search)?req.params.search:{value:"", regex:""};
+  var search = (req.query.search)?req.query.search:{value:"", regex:""};
 
   Promise.all([
     database('tags')
+      .select('name')
+      .count('name', {as: 'count'})
+      .max('updated_at', {as: 'last_use'})
       .where('name', 'like', search.value + "%")
       .where('type', 'Hashtag')
       .groupBy('name')
@@ -173,12 +176,13 @@ router.use("/tags", isAuthenticated, function(req, res, next) {
       .first(),
     database('tags')
       .where('name', 'like', search.value + "%")
-      .count()
+      .where('type', 'Hashtag')
+      .count('name')
       .first(),
   ])
   .then(function(result) {
     res.json({
-      "draw": req.query.draw + 1,
+      "draw": Number(req.query.draw),
       "recordsTotal": Number(result[1].count),
       "recordsFiltered": Number(result[2].count),
       "data": result[0]
