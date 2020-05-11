@@ -162,7 +162,6 @@ router.use("/tags", isAuthenticated, function(req, res, next) {
 
   Promise.all([
     database('tags')
-      .select('name')
       .count('name', {as: 'count'})
       .max('updated_at', {as: 'last_use'})
       .where('name', 'like', search.value + "%")
@@ -170,14 +169,14 @@ router.use("/tags", isAuthenticated, function(req, res, next) {
       .groupBy('name')
       .limit(length)
       .offset(start)
-      .select(),
+      .select('name'),
     database('tags')
       .count()
       .first(),
     database('tags')
       .where('name', 'like', search.value + "%")
       .where('type', 'Hashtag')
-      .count('name')
+      .count(database.raw('distinct name'))
       .first(),
   ])
   .then(function(result) {
