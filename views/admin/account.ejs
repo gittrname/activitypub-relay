@@ -75,8 +75,8 @@
       $("#account-table").DataTable({
         "processing": true,
         "serverSide": true,
-        //"ordering": false,
-        //"info":     false,
+        "ordering": true,
+        "info":     false,
         "ajax": {
           "url": "/api/accounts"
         },

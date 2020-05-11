@@ -85,12 +85,16 @@ router.use("/instances", isAuthenticated, function(req, res, next) {
   var length = (req.query.length)?req.query.length:10;
 
   var search = (req.query.search)?req.query.search:{value:"", regex:""};
+  var order = (req.query.order[0])?req.query.order[0]:{column:"", dir:""};
+
+  var column = (req.query.columns)?req.query.columns:[{data:""}];
 
   Promise.all([
     database('relays')
       .where('domain', 'like', search.value + "%")
-    . limit(length)
+      .limit(length)
       .offset(start)
+      .orderBy(column[order.column].data, order.dir)
       .select(),
     database('relays')
       .count()
@@ -121,6 +125,9 @@ router.use("/accounts", isAuthenticated, function(req, res, next) {
   var length = (req.query.length)?req.query.length:10;
 
   var search = (req.query.search)?req.query.search:{value:"", regex:""};
+  var order = (req.query.order[0])?req.query.order[0]:{column:"", dir:""};
+
+  var column = (req.query.columns)?req.query.columns:[{data:""}];
 
   Promise.all([
     database('accounts')
@@ -128,6 +135,7 @@ router.use("/accounts", isAuthenticated, function(req, res, next) {
       .orWhere('domain', 'like', search.value + "%")
       .limit(length)
       .offset(start)
+      .orderBy(column[order.column].data, order.dir)
       .select(),
     database('accounts')
       .count()
@@ -159,6 +167,9 @@ router.use("/tags", isAuthenticated, function(req, res, next) {
   var length = (req.query.length)?req.query.length:10;
 
   var search = (req.query.search)?req.query.search:{value:"", regex:""};
+  var order = (req.query.order[0])?req.query.order[0]:{column:"", dir:""};
+
+  var column = (req.query.columns)?req.query.columns:[{data:""}];
 
   Promise.all([
     database('tags')
@@ -169,6 +180,7 @@ router.use("/tags", isAuthenticated, function(req, res, next) {
       .groupBy('name')
       .limit(length)
       .offset(start)
+      .orderBy(column[order.column].data, order.dir)
       .select('name'),
     database('tags')
       .count()
