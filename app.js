@@ -71,6 +71,11 @@ console.log("　host: "+config.database.connection.host);
 console.log("　port: "+config.database.connection.port);
 console.log("　name: "+config.database.connection.database);
 
+console.log("・influx")
+console.log("　host: "+config.influx.host);
+console.log("　port: "+config.influx.port);
+console.log("　database: "+config.influx.database);
+
 
 // web_service
 app.use('/', require('./routes/web_service'));

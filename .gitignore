@@ -2,6 +2,7 @@
 /node_modules
 /redis
 /postgres
+/influxdb
 /mock
 /tmp
 /package-lock.json

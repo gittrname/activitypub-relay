@@ -41,6 +41,15 @@ module.exports = {
     }
   },
 
+  // influx
+  influx: {
+    host:     (process.env.INFLUX_HOST) ? process.env.INFLUX_HOST : "127.0.0.1",
+    port:     (process.env.INFLUX_PORT) ? process.env.INFLUX_PORT : "8086",
+    database: (process.env.INFLUX_DATABASE) ? process.env.INFLUX_DATABASE : "influx",
+    username: (process.env.INFLUX_USERNAME) ? process.env.INFLUX_USERNAME : "",
+    password: (process.env.INFLUX_PASSWORD) ? process.env.INFLUX_PASSWORD : "",
+  },
+
   // process queue
   queue: {
     pool: (process.env.QUEUE_POOL) ? Number(process.env.QUEUE_POOL): 5

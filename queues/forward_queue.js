@@ -3,9 +3,8 @@ var SubscriptionMessage = require('../activitypub/subscription_message');
 var Signature = require('../utils/signature_utilily');
 
 var accountCache = require('./account_cache');
-
 var database = require('../database');
-
+var influx = require('../influx');
 var config = require('../settings');
 
 //
@@ -53,11 +52,24 @@ module.exports = function(job) {
         .whereNot({'accounts.domain': account['domain']})
         .then(function(rows) {
           for(idx in rows) {
+            var inboxUrl = rows[idx]['inbox_url'];
+
             // 転送
             console.log('Forward Activity.'
-              +' form='+account['uri']+' to='+rows[idx]['inbox_url']);
-            subscriptionMessage.sendActivity(
-                rows[idx]['inbox_url'], forwardActivity);  // 単純フォーワード
+              +' form='+account['uri']+' to='+inboxUrl);
+            // 単純フォーワード
+            subscriptionMessage
+              .sendActivity(inboxUrl, forwardActivity)
+              .then(function(res) {
+                // 結果ログ記録
+                subscriptionLog('forward',
+                  forwardActivity.id, inboxUrl, true);
+              })
+              .catch(function(err) {
+                // 結果ログ記録
+                subscriptionLog('forward',
+                  forwardActivity.id, inboxUrl, false);
+              });
           }
 
           return Promise.resolve(account);
@@ -74,13 +86,27 @@ module.exports = function(job) {
         .whereNot({'accounts.domain': account['domain']})
         .then(function(rows) {
           for(idx in rows) {
+            var inboxUrl = rows[idx]['inbox_url'];
+
             // 転送
             console.log('Boost Activity.'
-              +' form='+account['uri']+' to='+rows[idx]['inbox_url']);
+              +' form='+account['uri']+' to='+inboxUrl);
+            // 単純フォーワード
             //subscriptionMessage.sendActivity(
-            //    rows[idx]['inbox_url'], forwardActivity);  // 単純フォーワード
-            subscriptionMessage.sendActivity(
-                rows[idx]['shared_inbox_url'], forwardActivity);  // ブースト
+            //    inboxUrl, forwardActivity);
+            // ブースト
+            subscriptionMessage
+              .sendActivity(inboxUrl, forwardActivity)
+              .then(function(res) {
+                // 結果ログ記録
+                subscriptionLog('boost',
+                  forwardActivity.id, inboxUrl, true);
+              })
+              .catch(function(err) {
+                // 結果ログ記録
+                subscriptionLog('boost',
+                  forwardActivity.id, inboxUrl, false);
+              });
           }
 
           return Promise.resolve(rows);
@@ -98,13 +124,26 @@ module.exports = function(job) {
 
       // タグ登録
       for(idx in forwardActivity.object.tag) {
-        console.log('insert tag.['+forwardActivity.object.tag[idx].name+']');
+        console.log('insert hashtag.['+forwardActivity.object.tag[idx].name+']');
 
         database('tags').insert({
           type: forwardActivity.object.tag[idx].type,
           href: forwardActivity.object.tag[idx].href,
           name: forwardActivity.object.tag[idx].name
-        })
+        });
+
+        influx.writePoints([
+          {
+            measurement: 'hashtag',
+            fields: {
+              id: forwardActivity.id
+            },
+            tags: {
+              name: forwardActivity.object.tag[idx].name,
+              type: forwardActivity.object.tag[idx].type
+            }
+          }
+        ])
         .catch(function(err) {
           console.log(err);
         });
@@ -117,3 +156,18 @@ module.exports = function(job) {
       return reject(err);
     });
 };
+
+//
+// Subscriptionの結果を記録する
+function subscriptionLog(measurement, id, inboxUrl, result) {
+  return influx.writePoints([
+      {
+        measurement: measurement,
+        tags: {inbox_url: inboxUrl},
+        fields: {id: id, result: result}
+      }
+    ])
+    .catch(function(err) {
+      console.log(err);
+    });
+}
