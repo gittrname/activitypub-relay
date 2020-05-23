@@ -31,7 +31,7 @@ services:
     image: redis:4.0-alpine
 #    ports:
 #      - "6379:6379"
-#    networks:
+    networks:
       - internal_network
 #      - external_network
 #    volumes:
@@ -42,7 +42,7 @@ services:
     image: influxdb:1.7-alpine
 #    ports:
 #      - "8086:8086"
-#    networks:
+    networks:
       - internal_network
 #      - external_network
 #    volumes:
