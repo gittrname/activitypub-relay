@@ -1,6 +1,7 @@
 var express = require('express');
 var validator = require('validator');
 var database = require('../database');
+var influx = require('../influx');
 var router = express.Router();
 
 //
@@ -76,6 +77,60 @@ function isAuthenticated(req, res, next) {
     res.status(401);
   }
 }
+
+//
+// 月別配信数
+router.use("/delivery/monthly", isAuthenticated, function(req, res, next) {
+
+  influx
+    .query(
+      "select count(result) from forward"
+      + " where time > now() - 31d and time < now()"
+      + " group by time(1d)"
+    )
+    .then(function(result) {
+      res.json(result);
+    })
+    .catch(function(err) {
+      next(err);
+    });
+});
+
+//
+// 週別配信数
+router.use("/delivery/weekly", isAuthenticated, function(req, res, next) {
+
+  influx
+    .query(
+      "select count(result) from forward"
+      + " where time > now() - 7d and time < now()"
+      + " group by time(1d)"
+    )
+    .then(function(result) {
+      res.json(result);
+    })
+    .catch(function(err) {
+      next(err);
+    });
+});
+
+//
+// 日別配信数
+router.use("/delivery/daily", isAuthenticated, function(req, res, next) {
+
+  influx
+    .query(
+      "select count(result) from forward"
+      + " where time > now() - 1d and time < now()"
+      + " group by time(1h)"
+    )
+    .then(function(result) {
+      res.json(result);
+    })
+    .catch(function(err) {
+      next(err);
+    });
+});
 
 //
 // インスタンス一覧取得
