@@ -62,7 +62,7 @@ module.exports = function(job) {
               .sendActivity(inboxUrl, forwardActivity)
               .then(function(res) {
 
-                if (res.statuscode == 200 || res.statuscode == 201) {
+                if (res.statusCode == 202) {
                   // 配信成功を結果ログに記録
                   subscriptionLog('forward',
                     forwardActivity.id, inboxUrl, true);
@@ -109,7 +109,7 @@ module.exports = function(job) {
               .sendActivity(inboxUrl, forwardActivity)
               .then(function(res) {
 
-                if (res.statuscode == 200 || res.statuscode == 201) {
+                if (res.statusCode == 202) {
                   // 配信成功を結果ログに記録
                   subscriptionLog('forward',
                     forwardActivity.id, inboxUrl, true);

@@ -46,16 +46,15 @@ const influx = new Influx.InfluxDB({
 influx.getDatabaseNames()
   .then(function(names) {
     if (!names.includes(config.influx.database)) {
-      return influx.createDatabase(config.influx.database);
+      influx.createDatabase(config.influx.database);
+      influx.createRetentionPolicy('90d', {
+        database: config.influx.database,
+        duration: '90d',
+        replication: 1,
+        isDefault: true
+      });
+      return;
     }
-  })
-  .then(function() {
-    return influx.createRetentionPolicy('90d', {
-      database: config.influx.database,
-      duration: '90d',
-      replication: 1,
-      isDefault: true
-    });
   })
   .catch(function(err) {
     console.log('influx create faild.['+err+']');
