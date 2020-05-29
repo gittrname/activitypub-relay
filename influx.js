@@ -49,6 +49,14 @@ influx.getDatabaseNames()
       return influx.createDatabase(config.influx.database);
     }
   })
+  .then(function() {
+    return influx.createRetentionPolicy('90d', {
+      database: config.influx.database,
+      duration: '90d',
+      replication: 1,
+      isDefault: true
+    });
+  })
   .catch(function(err) {
     console.log('influx create faild.['+err+']');
     process.exit(-1);
