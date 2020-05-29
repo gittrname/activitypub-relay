@@ -61,12 +61,22 @@ module.exports = function(job) {
             subscriptionMessage
               .sendActivity(inboxUrl, forwardActivity)
               .then(function(res) {
-                // 結果ログ記録
-                subscriptionLog('forward',
-                  forwardActivity.id, inboxUrl, true);
+
+                if (res.statuscode == 200 || res.statuscode == 201) {
+                  // 配信成功を結果ログに記録
+                  subscriptionLog('forward',
+                    forwardActivity.id, inboxUrl, true);
+                } else if (res.statuscode == 410) {
+                  // 配送先から取り消す
+                  database('relays').where('id', rows[idx]['id']).del();
+                } else {
+                  // 配信失敗を結果ログに記録
+                  subscriptionLog('forward',
+                    forwardActivity.id, inboxUrl, false);
+                }
               })
               .catch(function(err) {
-                // 結果ログ記録
+                // 配信失敗を結果ログに記録
                 subscriptionLog('forward',
                   forwardActivity.id, inboxUrl, false);
               });
@@ -98,13 +108,23 @@ module.exports = function(job) {
             subscriptionMessage
               .sendActivity(inboxUrl, forwardActivity)
               .then(function(res) {
-                // 結果ログ記録
-                subscriptionLog('boost',
-                  forwardActivity.id, inboxUrl, true);
+
+                if (res.statuscode == 200 || res.statuscode == 201) {
+                  // 配信成功を結果ログに記録
+                  subscriptionLog('forward',
+                    forwardActivity.id, inboxUrl, true);
+                } else if (res.statuscode == 410) {
+                  // 配送先から取り消す
+                  database('followers').where('id', rows[idx]['id']).del();
+                } else {
+                  // 配信失敗を結果ログに記録
+                  subscriptionLog('forward',
+                    forwardActivity.id, inboxUrl, false);
+                }
               })
               .catch(function(err) {
-                // 結果ログ記録
-                subscriptionLog('boost',
+                // 配信失敗を結果ログに記録
+                subscriptionLog('forward',
                   forwardActivity.id, inboxUrl, false);
               });
           }
