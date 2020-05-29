@@ -63,11 +63,13 @@
 
         <h2>Daily</h2>
         <div class="table-responsive">
-          <table class="table table-striped table-sm" id="daily-table">
+          <table class="table table-striped table-sm responsive" id="daily-table">
             <thead>
               <tr>
                 <th>時間帯</th>
                 <th>配信数</th>
+                <th>成功数</th>
+                <th>失敗数</th>
               </tr>
             </thead>
             <tbody>
@@ -90,40 +92,98 @@
     $(function() {
       // グラフ
       $.get("/api/delivery/weekly", function(data) {
+
+        // 表示データ作成
         var labelArr = [];
-        var dataArr = [];
-        for(idx in data) {
-          labelArr.push(data[idx].time.substring(0, 10));
-          dataArr.push(data[idx].count);
+        var totalArr = [];
+        var compliteArr = [];
+        var failureArr = [];
+        for(idx in data.total) {
+          labelArr.push(data.total[idx].time.substring(0, 10));
+          if (data.total[idx]) {
+            totalArr.push(data.total[idx].count);
+          } else {
+            totalArr.push("0");
+          }
+          if (data.complite[idx]) {
+            compliteArr.push(data.complite[idx].count);
+          } else {
+            compliteArr.push("0");
+          }
+          if (data.failure[idx]) {
+            failureArr.push(data.failure[idx].count);
+          } else {
+            failureArr.push("0");
+          }
         }
-        //
+
+        // グラフ描画
         var myChart = new Chart($("#delivery")[0], {
-          type: 'line',
           data: {
             labels: labelArr,
             datasets: [{
-              data: dataArr
+              type: "line",
+              label: "成功数",
+              data: compliteArr,
+              borderColor: "#abffa6",
+              backgroundColor: "transparent",
+            },{
+              type: "line",
+              label: "失敗数",
+              data: failureArr,
+              borderColor: "#ffcdff",
+              backgroundColor: "transparent",
             }]
           },
           options: {
+            responsive: true,
             legend: {
-              display: false
-            }
+              display: true
+            },
+            scales: {
+              yAxes: [{}],
+              xAxes: [{}],
+            },
           }
         });
       });
 
       // 日別の配信数
       $.get("/api/delivery/daily", function(data) {
+
+        // 表示データ作成
+        var dataSet = [];
+        for(idx in data.total) {
+          var row = [];
+
+          row.push(data.total[idx].time);
+          if (data.total[idx]) {
+            row.push(data.total[idx].count);
+          } else {
+            row.push("0");
+          }
+          if (data.complite[idx]) {
+            row.push(data.complite[idx].count);
+          } else {
+            row.push("0");
+          }
+          if (data.failure[idx]) {
+            row.push(data.failure[idx].count);
+          } else {
+            row.push("0");
+          }
+
+          dataSet.push(row);
+        }
+
+        // 表描画
         $("#daily-table").DataTable({
+          "responsive": true,
+          "paging":   false,
           "searching": false,
           "ordering": false,
           "info":     false,
-          data: data,
-          columns: [
-            {"data": "time"},
-            {"data": "count"},
-          ]
+          data: dataSet,
         });
       });
     });

@@ -82,54 +82,105 @@ function isAuthenticated(req, res, next) {
 // 月別配信数
 router.use("/delivery/monthly", isAuthenticated, function(req, res, next) {
 
-  influx
-    .query(
+  Promise.all([
+    influx.query(
       "select count(result) from forward"
       + " where time > now() - 31d and time < now()"
       + " group by time(1d)"
-    )
-    .then(function(result) {
-      res.json(result);
-    })
-    .catch(function(err) {
-      next(err);
+    ),
+    influx.query(
+      "select count(result) from forward"
+      + " where time > now() - 31d and time < now()"
+      + " and result = true"
+      + " group by time(1d)"
+    ),
+    influx.query(
+      "select count(result) from forward"
+      + " where time > now() - 31d and time < now()"
+      + " and result = false"
+      + " group by time(1d)"
+    ),
+  ])
+  .then(function(result) {
+    res.json({
+      "total": result[0],
+      "complite": result[1],
+      "failure": result[2],
     });
+  })
+  .catch(function(err) {
+    next(err);
+  });
 });
 
 //
 // 週別配信数
 router.use("/delivery/weekly", isAuthenticated, function(req, res, next) {
 
-  influx
-    .query(
+  Promise.all([
+    influx.query(
       "select count(result) from forward"
       + " where time > now() - 7d and time < now()"
       + " group by time(1d)"
-    )
-    .then(function(result) {
-      res.json(result);
-    })
-    .catch(function(err) {
-      next(err);
+    ),
+    influx.query(
+      "select count(result) from forward"
+      + " where time > now() - 7d and time < now()"
+      + " and result = true"
+      + " group by time(1d)"
+    ),
+    influx.query(
+      "select count(result) from forward"
+      + " where time > now() - 7d and time < now()"
+      + " and result = false"
+      + " group by time(1d)"
+    ),
+  ])
+  .then(function(result) {
+    res.json({
+      "total": result[0],
+      "complite": result[1],
+      "failure": result[2],
     });
+  })
+  .catch(function(err) {
+    next(err);
+  });
 });
 
 //
 // 日別配信数
 router.use("/delivery/daily", isAuthenticated, function(req, res, next) {
 
-  influx
-    .query(
+  Promise.all([
+    influx.query(
       "select count(result) from forward"
       + " where time > now() - 1d and time < now()"
-      + " group by time(1h)"
-    )
-    .then(function(result) {
-      res.json(result);
-    })
-    .catch(function(err) {
-      next(err);
+      + " group by time(1h) order by desc"
+    ),
+    influx.query(
+      "select count(result) from forward"
+      + " where time > now() - 1d and time < now()"
+      + " and result = true"
+      + " group by time(1h) order by desc"
+    ),
+    influx.query(
+      "select count(result) from forward"
+      + " where time > now() - 1d and time < now()"
+      + " and result = false"
+      + " group by time(1h) order by desc"
+    ),
+  ])
+  .then(function(result) {
+    res.json({
+      "total": result[0],
+      "complite": result[1],
+      "failure": result[2],
     });
+  })
+  .catch(function(err) {
+    next(err);
+  });
 });
 
 //
