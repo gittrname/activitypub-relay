@@ -52,10 +52,20 @@
         <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
           <h1 class="h2">Delivery</h1>
           <div class="btn-toolbar mb-2 mb-md-0">
-            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-              This week
-            </button>
+            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+              <button type="button" class="btn btn-sm btn-outline-secondary" disabled>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              </button>
+              <label class="btn btn-sm btn-outline-secondary">
+                <input type="radio" name="graphChg" autocomplete="off" value="monthly"/>This month
+              </label>
+              <label class="btn btn-sm btn-outline-secondary active">
+                <input type="radio" name="graphChg" autocomplete="off" value="weekly" checked/>This week
+              </label>
+              <label class="btn btn-sm btn-outline-secondary">
+                <input type="radio" name="graphChg" autocomplete="off" value="daily"/>This day
+              </label>
+            </div>
           </div>
         </div>
 
@@ -66,10 +76,10 @@
           <table class="table table-striped table-sm responsive" id="daily-table">
             <thead>
               <tr>
-                <th>時間帯</th>
-                <th>配信数</th>
-                <th>成功数</th>
-                <th>失敗数</th>
+                <th>Timezone</th>
+                <th>Delivery</th>
+                <th>Success</th>
+                <th>Failure</th>
               </tr>
             </thead>
             <tbody>
@@ -89,104 +99,148 @@
   <!-- Dashboard JavaScript -->
   <script src="/vendor/datatables/datatables.min.js"></script>
   <script type="text/javascript">
+    var TYPE_HHII = 0;
+    var TYPE_YMD = 1;
+
+    var API_MONTHLY = "/api/delivery/monthly";
+    var API_WEEKLY = "/api/delivery/weekly";
+    var API_DAILY = "/api/delivery/daily";
+
     $(function() {
-      // グラフ
-      $.get("/api/delivery/weekly", function(data) {
 
-        // 表示データ作成
-        var labelArr = [];
-        var totalArr = [];
-        var compliteArr = [];
-        var failureArr = [];
-        for(idx in data.total) {
-          labelArr.push(data.total[idx].time.substring(0, 10));
-          if (data.total[idx]) {
-            totalArr.push(data.total[idx].count);
-          } else {
-            totalArr.push("0");
-          }
-          if (data.complite[idx]) {
-            compliteArr.push(data.complite[idx].count);
-          } else {
-            compliteArr.push("0");
-          }
-          if (data.failure[idx]) {
-            failureArr.push(data.failure[idx].count);
-          } else {
-            failureArr.push("0");
-          }
+      // グラフ切り替えボタン
+      $("input[name='graphChg']").on("change", function() {
+        if ($("input[name='graphChg']:checked").val()=="monthly") {
+          $.get(API_MONTHLY, function(data) {
+            drawGraph(data, TYPE_YMD);
+          });
+        } else if ($("input[name='graphChg']:checked").val()=="weekly") {
+          $.get(API_WEEKLY, function(data) {
+            drawGraph(data, TYPE_YMD);
+          });
+        } else if ($("input[name='graphChg']:checked").val()=="daily") {
+          $.get(API_DAILY, function(data) {
+            drawGraph(data, TYPE_HHII);
+          });
+        } else {
+          $.get(API_WEEKLY, function(data) {
+            drawGraph(data, TYPE_YMD);
+          });
         }
-
-        // グラフ描画
-        var myChart = new Chart($("#delivery")[0], {
-          data: {
-            labels: labelArr,
-            datasets: [{
-              type: "line",
-              label: "成功数",
-              data: compliteArr,
-              borderColor: "#abffa6",
-              backgroundColor: "transparent",
-            },{
-              type: "line",
-              label: "失敗数",
-              data: failureArr,
-              borderColor: "#ffcdff",
-              backgroundColor: "transparent",
-            }]
-          },
-          options: {
-            responsive: true,
-            legend: {
-              display: true
-            },
-            scales: {
-              yAxes: [{}],
-              xAxes: [{}],
-            },
-          }
-        });
       });
+      $("input[name='graphChg'").trigger("change");
 
       // 日別の配信数
-      $.get("/api/delivery/daily", function(data) {
+      $.get(API_DAILY, drawDailyTable);
+    });
 
-        // 表示データ作成
-        var dataSet = [];
-        for(idx in data.total) {
-          var row = [];
+    /*
+     * グラフ描画
+     */
+    var myChart;
+    function drawGraph(data, type) {
 
-          row.push(data.total[idx].time);
-          if (data.total[idx]) {
-            row.push(data.total[idx].count);
-          } else {
-            row.push("0");
-          }
-          if (data.complite[idx]) {
-            row.push(data.complite[idx].count);
-          } else {
-            row.push("0");
-          }
-          if (data.failure[idx]) {
-            row.push(data.failure[idx].count);
-          } else {
-            row.push("0");
-          }
+      // 表示データ作成
+      var labelArr = [];
+      var totalArr = [];
+      var compliteArr = [];
+      var failureArr = [];
+      for(idx in data.total) {
+        if (type == TYPE_HHII) {
+          labelArr.push(data.total[idx].time.substring(12, 16));
+        } else {
+          labelArr.push(data.total[idx].time.substring(0, 10));
+        }
+        if (data.total[idx]) {
+          totalArr.push(data.total[idx].count);
+        } else {
+          totalArr.push("0");
+        }
+        if (data.complite[idx]) {
+          compliteArr.push(data.complite[idx].count);
+        } else {
+          compliteArr.push("0");
+        }
+        if (data.failure[idx]) {
+          failureArr.push(data.failure[idx].count);
+        } else {
+          failureArr.push("0");
+        }
+      }
 
-          dataSet.push(row);
+      if (myChart) myChart.destroy();
+      
+      // グラフ描画
+      myChart = new Chart($("#delivery")[0], {
+        data: {
+          labels: labelArr,
+          datasets: [{
+            type: "line",
+            label: "Success",
+            data: compliteArr,
+            borderColor: "#abffa6",
+            backgroundColor: "transparent",
+          },{
+            type: "line",
+            label: "Faliure",
+            data: failureArr,
+            borderColor: "#ffcdff",
+            backgroundColor: "transparent",
+          }]
+        },
+        options: {
+          responsive: true,
+          legend: {
+            display: true
+          },
+          scales: {
+            yAxes: [{}],
+            xAxes: [{}],
+          },
+        }
+      });
+    }
+
+    /*
+     * 表描画
+     */
+    function drawDailyTable(data) {
+
+      // 表示データ作成
+      var dataSet = [];
+      for(idx in data.total) {
+        var row = [];
+
+        row.push(data.total[idx].time);
+        if (data.total[idx]) {
+          row.push(data.total[idx].count);
+        } else {
+          row.push("0");
+        }
+        if (data.complite[idx]) {
+          row.push(data.complite[idx].count);
+        } else {
+          row.push("0");
+        }
+        if (data.failure[idx]) {
+          row.push(data.failure[idx].count);
+        } else {
+          row.push("0");
         }
 
-        // 表描画
-        $("#daily-table").DataTable({
-          "responsive": true,
-          "paging":   false,
-          "searching": false,
-          "ordering": false,
-          "info":     false,
-          data: dataSet,
-        });
+        dataSet.push(row);
+      }
+
+      // 表描画
+      $("#daily-table").DataTable({
+        "responsive": true,
+        "paging":   false,
+        "searching": false,
+        "ordering": false,
+        "info":     false,
+        data: dataSet,
       });
-    });
+    }
 
   </script>
   </body>
