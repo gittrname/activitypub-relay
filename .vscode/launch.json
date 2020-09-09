@@ -5,11 +5,21 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch",
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
             "program": "${workspaceFolder}/bin/www",
+            "runtimeExecutable": null,
+            "runtimeArgs": [
+              "--nolazy"
+            ],
             "envFile": "${workspaceFolder}/.env.developement"
+        },
+        {
+          "name": "Attach",
+          "type": "node",
+          "request": "attach",
+          "port": 5858
         }
     ]
 }

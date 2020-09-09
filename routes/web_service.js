@@ -73,7 +73,7 @@ router.get('/status', function(req, res, next) {
 
 //
 // inbox
-router.post('(/|//)inbox', function (req, res, next) {
+router.post('(/||//)inbox', function (req, res, next) {
 
   // ヘッダーの検証
   if (!req.headers['content-type'] || req.headers['content-type'] != "application/activity+json") {
@@ -141,6 +141,9 @@ router.post('(/|//)inbox', function (req, res, next) {
           body: req.rawBody
         }
       });
+      break;
+    
+    case "Accept":
       break;
 
     default:

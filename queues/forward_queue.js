@@ -20,6 +20,9 @@ module.exports = function(job) {
 
   // 転送Activity
   var forwardActivity = Activity.parse(client.body);
+  // ブーストActivity
+  var activity = new Activity(config.relay);
+  var boastActivity = activity.announce(client.body);
 
   console.log('start forward queue process. keyId='+signParams['keyId']);
 
@@ -110,13 +113,13 @@ module.exports = function(job) {
               +' form='+account['uri']+' to='+inboxUrl);
             // ブースト
             subscriptionMessage
-              .sendActivity(inboxUrl, forwardActivity)
+              .sendActivity(inboxUrl, boastActivity)
               .then(function(res) {
 
                 if (res.statusCode == 202) {
                   // 配信成功を結果ログに記録
                   subscriptionLog('forward',
-                    forwardActivity.id, inboxUrl, true);
+                    boastActivity.id, inboxUrl, true);
                 } else {
                   if (res.statuscode == undefined || res.statuscode == 410) {
                     // 配送先から取り消す
@@ -128,13 +131,13 @@ module.exports = function(job) {
 
                   // 配信失敗を結果ログに記録
                   subscriptionLog('forward',
-                    forwardActivity.id, inboxUrl, false);
+                    boastActivity.id, inboxUrl, false);
                 }
               })
               .catch(function(err) {
                 // 配信失敗を結果ログに記録
                 subscriptionLog('forward',
-                  forwardActivity.id, inboxUrl, false);
+                  boastActivity.id, inboxUrl, false);
               });
           }
 

@@ -34,7 +34,9 @@ Activity.prototype.unfollow = function(actor) {
 //
 // Accept Activity Object
 Activity.prototype.accept = function(activity) {
-  activity = Activity.parse(activity);
+  if (typeof(activity) == 'string') {
+    activity = Activity.parse(activity);
+  }
 
   return {
     '@context': 'https://www.w3.org/ns/activitystreams',
@@ -48,7 +50,9 @@ Activity.prototype.accept = function(activity) {
 //
 // Reject Activity Object
 Activity.prototype.reject = function(keyId, activity) {
-  activity = Activity.parse(activity);
+  if (typeof(activity) == 'string') {
+    activity = Activity.parse(activity);
+  }
 
   return {
     '@context': 'https://www.w3.org/ns/activitystreams',
@@ -67,7 +71,9 @@ Activity.prototype.reject = function(keyId, activity) {
 //
 // Announce Activity Object
 Activity.prototype.announce = function(activity) {
-  activity = Activity.parse(activity);
+  if (typeof(activity) == 'string') {
+    activity = Activity.parse(activity);
+  }
 
   return {
     '@context': 'https://www.w3.org/ns/activitystreams',

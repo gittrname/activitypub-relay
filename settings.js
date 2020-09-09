@@ -6,9 +6,9 @@ module.exports = {
 
   // relay server setting
   relay: {
-    url: relayUrl.href,
-    actor: relayUrl.protocol+'//'+relayUrl.host+'/actor',
-    keyId: relayUrl.protocol+'//'+relayUrl.host+'/actor#main-key',
+    url: relayUrl.href.substring(0, relayUrl.href.length-1),
+    actor: relayUrl.href+'actor',
+    keyId: relayUrl.href+'actor#main-key',
     account: 'acct:relay@'+relayUrl.host,
     privateKey: (process.env.PRIVATE_KEY) ? process.env.PRIVATE_KEY : "not private key.",
     publicKey: (process.env.PUBLIC_KEY) ? process.env.PUBLIC_KEY : "not public key."
