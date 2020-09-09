@@ -50,6 +50,7 @@ module.exports = function(job) {
       database('relays')
         .innerJoin('accounts', 'relays.account_id', 'accounts.id')
         .whereNot({'accounts.domain': account['domain']})
+        .where('relays.status', 1)
         .then(function(rows) {
           for(idx in rows) {
             var inboxUrl = rows[idx]['inbox_url'];
@@ -66,10 +67,15 @@ module.exports = function(job) {
                   // 配信成功を結果ログに記録
                   subscriptionLog('forward',
                     forwardActivity.id, inboxUrl, true);
-                } else if (res.statuscode == 410) {
-                  // 配送先から取り消す
-                  database('relays').where('id', rows[idx]['id']).del();
                 } else {
+                  if (res.statuscode == undefined || res.statuscode == 410) {
+                    // 配送先から取り消す
+                    database('relays').where('id', rows[idx]['relays.id']).del();
+                  } else {
+                    // 配送先状態を変更する
+                    database('relays').where('id', rows[idx]['relays.id']).update({'status': 0});
+                  }
+
                   // 配信失敗を結果ログに記録
                   subscriptionLog('forward',
                     forwardActivity.id, inboxUrl, false);
@@ -94,6 +100,7 @@ module.exports = function(job) {
       database('followers')
         .innerJoin('accounts', 'followers.account_id', 'accounts.id')
         .whereNot({'accounts.domain': account['domain']})
+        .where('followers.status', 1)
         .then(function(rows) {
           for(idx in rows) {
             var inboxUrl = rows[idx]['inbox_url'];
@@ -101,9 +108,6 @@ module.exports = function(job) {
             // 転送
             console.log('Boost Activity.'
               +' form='+account['uri']+' to='+inboxUrl);
-            // 単純フォーワード
-            //subscriptionMessage.sendActivity(
-            //    inboxUrl, forwardActivity);
             // ブースト
             subscriptionMessage
               .sendActivity(inboxUrl, forwardActivity)
@@ -113,10 +117,15 @@ module.exports = function(job) {
                   // 配信成功を結果ログに記録
                   subscriptionLog('forward',
                     forwardActivity.id, inboxUrl, true);
-                } else if (res.statuscode == 410) {
-                  // 配送先から取り消す
-                  database('followers').where('id', rows[idx]['id']).del();
                 } else {
+                  if (res.statuscode == undefined || res.statuscode == 410) {
+                    // 配送先から取り消す
+                    database('followers').where('id', rows[idx]['followers.id']).del();
+                  } else {
+                    // 配送先状態を変更する
+                    database('followers').where('id', rows[idx]['followers.id']).update({'status': 0});
+                  }
+
                   // 配信失敗を結果ログに記録
                   subscriptionLog('forward',
                     forwardActivity.id, inboxUrl, false);
