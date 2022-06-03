@@ -53,14 +53,34 @@
                 <th>Name</th>
                 <th>Create</th>
                 <th>Update</th>
+                <th>Follower</th>
               </tr>
             </thead>
             <tbody>
             </tbody>
           </table>
         </div>
-        
       </main>
+        
+      <div class="modal fade" id="unfollow-modal" tabindex="-1" role="dialog" aria-labelledby="label1" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="label1">Unfollow</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <h4>Would you like to unfollow this user?</h4>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" onClick="unfollow();">OK</button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -88,9 +108,64 @@
             }
           },
           {"data": "created_at"},
-          {"data": "updated_at"}
+          {"data": "updated_at"},
+          {
+            "data": "account_id",
+            "render": function(data, type, row) {
+              var $p = $("<p>");
+              if (data) {
+                var $btn = $("<button>")
+                          .addClass("btn btn-outline-danger")
+                          .attr("data-toggle","modal")
+                          .attr("data-target","#unfollow-modal")
+                          .data("account", row.usename + "@" + row.domain)
+                          .text("unfollow");
+                $p.append($btn);
+              }
+              return $p.html();
+            }
+          }
         ]
       });
+
+      function unfollow() {
+
+      }
+
+
+      function unfollowFunc(data) {
+        $.ajax({
+          url: '/api/unfollow',
+          method: 'POST',
+          data : JSON.stringify({
+            account: $('#remote-follow-form input[name=account]').val()
+          }),
+          contentType: 'application/JSON'
+        }).done(function(msg) {
+          // alert message
+          var alert = $('<div>')
+            .addClass('alert alert-success')
+            .attr('role', 'alert')
+            .attr('id', 'remote-follow-message')
+            .text(msg);
+          
+          // add message alert
+          $('#remote-follow-form').before(alert);
+
+        }).fail(function(res) {
+          // alert message
+          var alert = $('<div>')
+            .addClass('alert alert-danger')
+            .attr('role', 'alert')
+            .attr('id', 'remote-follow-message')
+            .text(res.responseText);
+          
+          // add message alert
+          $('#remote-follow-form').before(alert);
+        }).always(function() {
+          $(_this).prop('disabled', false);
+        });
+      }
     });
   </script>
 

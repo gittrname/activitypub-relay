@@ -1,5 +1,4 @@
-FROM node:8-stretch
-MAINTAINER gittrname<txgfx504@yahoo.co.jp>
+FROM node:16-stretch
 
 # install gcc
 RUN apt-get update \

@@ -5,7 +5,7 @@
 * サポートされる分散型SNS
   * Mastodon
   * Pleroma
-  * Misskey(予定)
+  * Misskey
 
 # 使い方
 

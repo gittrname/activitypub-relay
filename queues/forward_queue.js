@@ -124,9 +124,6 @@ module.exports = function(job) {
                   if (res.statuscode == undefined || res.statuscode == 410) {
                     // 配送先から取り消す
                     database('followers').where('id', rows[idx]['followers.id']).del();
-                  } else {
-                    // 配送先状態を変更する
-                    database('followers').where('id', rows[idx]['followers.id']).update({'status': 0});
                   }
 
                   // 配信失敗を結果ログに記録
@@ -138,6 +135,8 @@ module.exports = function(job) {
                 // 配信失敗を結果ログに記録
                 subscriptionLog('forward',
                   boastActivity.id, inboxUrl, false);
+                // 配送先状態を変更する
+                database('followers').where('id', rows[idx]['followers.id']).update({'status': 0});
               });
           }
 
@@ -182,6 +181,21 @@ module.exports = function(job) {
       }
 
       return Promise.resolve(account);
+    })
+    .then(function(account) {
+
+      // ドメインの配信状況確認
+      database('relays')
+        .where({'domain': account['domain']})
+        .where('status', 0)
+        .then(function(rows) {
+          for(idx in rows) {
+            // 配送先状態を変更する
+            database('relays')
+                .where('id', rows[idx]['id'])
+                .update({'status': 1});
+          }
+        });
     })
     .catch(function(err) {
       console.log(err);

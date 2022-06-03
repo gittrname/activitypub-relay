@@ -7,7 +7,7 @@ var router = express.Router();
 var config = require('../settings');
 
 // キューイング管理
-const Arena = require('bull-arena');
+//const Arena = require('bull-arena');
 
 // 認証機構
 var passport = require('passport');
@@ -62,29 +62,29 @@ router.use("/tags", isAuthenticated, function(req, res, next) {
 
 //
 // Queueページ
-router.use("/queues", isAuthenticated, Arena({
-  queues: [
-    {
-      name: "followQueue",
-      hostId: "redis",
-      redis: config.redis
-    },
-    {
-      name: "unfollowQueue",
-      hostId: "redis",
-      redis: config.redis
-    },
-    {
-      name: "forwardQueue",
-      hostId: "redis",
-      redis: config.redis
-    },
-    {
-      name: "remoteFollowQueue",
-      hostId: "redis",
-      redis: config.redis
-    }
-  ]
-}));
+// router.use("/queues", isAuthenticated, Arena({
+//   queues: [
+//     {
+//       name: "followQueue",
+//       hostId: "redis",
+//       redis: config.redis
+//     },
+//     {
+//       name: "unfollowQueue",
+//       hostId: "redis",
+//       redis: config.redis
+//     },
+//     {
+//       name: "forwardQueue",
+//       hostId: "redis",
+//       redis: config.redis
+//     },
+//     {
+//       name: "remoteFollowQueue",
+//       hostId: "redis",
+//       redis: config.redis
+//     }
+//   ]
+// }));
 
 module.exports = router;

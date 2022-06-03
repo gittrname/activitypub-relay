@@ -237,18 +237,21 @@ router.use("/accounts", isAuthenticated, function(req, res, next) {
 
   Promise.all([
     database('accounts')
-      .where('username', 'like', search.value + "%")
-      .orWhere('domain', 'like', search.value + "%")
+      .leftOuterJoin('followers', 'accounts.id', 'followers.account_id')
+      .where('accounts.username', 'like', search.value + "%")
+      .orWhere('accounts.domain', 'like', search.value + "%")
       .limit(length)
       .offset(start)
       .orderBy(column[order.column].data, order.dir)
-      .select(),
+      .select('accounts.id', 'accounts.username', 'accounts.domain', 'accounts.created_at', 'accounts.updated_at','followers.account_id'),
     database('accounts')
+      .leftOuterJoin('followers', 'accounts.id', 'followers.account_id')
       .count()
       .first(),
     database('accounts')
-      .where('username', 'like', search.value + "%")
-      .orWhere('domain', 'like', search.value + "%")
+      .leftOuterJoin('followers', 'accounts.id', 'followers.account_id')
+      .where('accounts.username', 'like', search.value + "%")
+      .orWhere('accounts.domain', 'like', search.value + "%")
       .count()
       .first(),
   ])

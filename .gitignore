@@ -6,7 +6,7 @@
 /mock
 /tmp
 /package-lock.json
-/.env.developement
+/.env.development
 /.env.production
 /keypair
 /tests/sign_test.js
