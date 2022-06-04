@@ -74,6 +74,9 @@ module.exports = function(job) {
                   if (res.statuscode == undefined || res.statuscode == 410) {
                     // 配送先から取り消す
                     database('relays').where('id', rows[idx]['relays.id']).del();
+                  } else {
+                    // 配送先状態を変更する
+                    database('relays').where('id', rows[idx]['relays.id']).update({'status': 0});
                   }
 
                   // 配信失敗を結果ログに記録
@@ -123,6 +126,9 @@ module.exports = function(job) {
                   if (res.statuscode == undefined || res.statuscode == 410) {
                     // 配送先から取り消す
                     database('followers').where('id', rows[idx]['followers.id']).del();
+                  } else {
+                    // 配送先状態を変更する
+                    database('followers').where('id', rows[idx]['followers.id']).update({'status': 0});
                   }
 
                   // 配信失敗を結果ログに記録

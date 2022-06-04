@@ -71,6 +71,6 @@ module.exports = function(job) {
          account['shared_inbox_url'], activity.accept(client.body));
     })
     .catch(function(err) {
-      console.log(err.message);
+      console.log(err);
     });
 };

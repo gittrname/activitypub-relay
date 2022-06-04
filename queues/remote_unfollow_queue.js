@@ -42,7 +42,7 @@ module.exports = function(job) {
       return accountCache(accountObj.href)
         .then(function(account) {
 
-          // すでにRelay登録されていないか確認
+          // すでにFollowers登録されていないか確認
           database('followers')
             .select()
             .where({
@@ -67,7 +67,7 @@ module.exports = function(job) {
         });
     })
     .catch(function(err) {
-      console.log(err.message);
+      console.log(err);
     });
 };
 

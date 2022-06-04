@@ -7,6 +7,10 @@
   * Pleroma
   * Misskey
 
+* 稼働
+https://relay.mstdn-jp.site
+
+
 # 使い方
 
 ## ■Docker

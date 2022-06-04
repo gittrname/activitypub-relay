@@ -14,8 +14,8 @@ var remoteUnFollow = new Queue('remoteUnFollow', config);
 follow.process(require('./queues/follow_queue'));
 unfollow.process(require('./queues/unfollow_queue'));
 forward.process(config.queue.pool, require('./queues/forward_queue'));
-remoteFollow.process(config.queue.pool, require('./queues/remote_follow_queue'));
-remoteUnFollow.process(config.queue.pool, require('./queues/remote_unfollow_queue'));
+remoteFollow.process(require('./queues/remote_follow_queue'));
+remoteUnFollow.process(require('./queues/remote_unfollow_queue'));
   
 //
 module.exports = {
