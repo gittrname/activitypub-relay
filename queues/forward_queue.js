@@ -185,6 +185,7 @@ module.exports = function(job) {
         });
       }
 
+      // 
       return Promise.resolve(account);
     })
     .then(function(account) {
@@ -201,6 +202,9 @@ module.exports = function(job) {
                 .update({'status': 1});
           }
         });
+        
+        // 
+        return Promise.resolve(account);
     })
     .catch(function(err) {
       console.log(err);
