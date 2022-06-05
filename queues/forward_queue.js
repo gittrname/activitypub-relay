@@ -66,17 +66,17 @@ module.exports = function(job, done) {
               .sendActivity(inboxUrl, forwardActivity)
               .then(function(res) {
 
-                if (res.statusCode == 202) {
+                if (res.status == 202) {
                   // 配信成功を結果ログに記録
                   subscriptionLog('forward',
                     forwardActivity.id, inboxUrl, true);
                 } else {
-                  if (res.statuscode == undefined || res.statuscode == 410) {
+                  if (res.status == undefined || res.status == 410) {
                     // 配送先から取り消す
-                    database('relays').where('id', rows[idx]['relays.id']).del();
+                    database('relays').where('id', rows[idx]['id']).del();
                   } else {
                     // 配送先状態を変更する
-                    database('relays').where('id', rows[idx]['relays.id']).update({'status': 0});
+                    database('relays').where('id', rows[idx]['id']).update({'status': 0});
                   }
 
                   // 配信失敗を結果ログに記録
@@ -90,7 +90,7 @@ module.exports = function(job, done) {
                 subscriptionLog('forward',
                   forwardActivity.id, inboxUrl, false);
                 // 配送先状態を変更する
-                database('relays').where('id', rows[idx]['relays.id']).update({'status': 0});
+                database('relays').where('id', rows[idx]['id']).update({'status': 0});
               });
           }
 
@@ -119,17 +119,17 @@ module.exports = function(job, done) {
               .sendActivity(inboxUrl, boastActivity)
               .then(function(res) {
 
-                if (res.statusCode == 202) {
+                if (res.status == 202) {
                   // 配信成功を結果ログに記録
                   subscriptionLog('forward',
                     boastActivity.id, inboxUrl, true);
                 } else {
-                  if (res.statuscode == undefined || res.statuscode == 410) {
+                  if (res.status == undefined || res.status == 410) {
                     // 配送先から取り消す
-                    database('followers').where('id', rows[idx]['followers.id']).del();
+                    database('followers').where('id', rows[idx]['id']).del();
                   } else {
                     // 配送先状態を変更する
-                    database('followers').where('id', rows[idx]['followers.id']).update({'status': 0});
+                    database('followers').where('id', rows[idx]['id']).update({'status': 0});
                   }
 
                   // 配信失敗を結果ログに記録
@@ -143,7 +143,7 @@ module.exports = function(job, done) {
                 subscriptionLog('forward',
                   boastActivity.id, inboxUrl, false);
                 // 配送先状態を変更する
-                database('followers').where('id', rows[idx]['followers.id']).update({'status': 0});
+                database('followers').where('id', rows[idx]['id']).update({'status': 0});
               });
           }
 
@@ -210,7 +210,7 @@ module.exports = function(job, done) {
     })
     .then(function(account) {
       // 処理終了
-      done();
+      return done();
     })
     .catch(function(err) {
       done(err);

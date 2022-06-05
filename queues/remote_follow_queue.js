@@ -1,4 +1,4 @@
-var request = require('request');
+var axios = require('axios');
 var url = require('url');
 
 var Activity = require('../activitypub/activity');
@@ -70,6 +70,8 @@ module.exports = function(job, done) {
     .then(function(account) {
       // 処理終了
       done();
+      // 
+      return Promise.resolve(account);
     })
     .catch(function(err) {
       console.log(err);
@@ -87,17 +89,13 @@ var webfingerRequest = function(url) {
     json: true
   };
 
-  return new Promise(function(resolve, reject) {
-
-    request(options, function(err, res, data) {
-
-      if (err) {
-        return reject(err);
-      }
-
-      resolve(data);
+  return axios(options)
+    .then(function(res) {
+      return res.data;
+    })
+    .catch(function(err) {
+      return err;
     });
-  });
 };
 
 //

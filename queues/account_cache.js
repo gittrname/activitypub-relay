@@ -1,4 +1,4 @@
-var request = require('request');
+var axios = require('axios');
 
 var database = require('../database');
 var cache = require('../cache');
@@ -71,46 +71,37 @@ var accountRequest = function(keyId) {
     json: true
   };
 
-  return new Promise(function(resolve, reject) {
-
-    request(options, function(err, res, data) {
-
-      if (err) {
-        return reject(err);
-      }
-      if (!data) {
-        return reject(new Error('no response.'));
-      }
-      if (!data=={}) {
-        return reject(new Error('no response.'));
-      }
+  return axios(options)
+    .then(function(res) {
 
       // レコード作成
-      var row = {
-        'username': data.preferredUsername,
-        'domain': res.request.host,
-        'private_key': '',
-        'public_key': (data.publicKey)?data.publicKey.publicKeyPem:'',
-        
-        'display_name': (data.name)?data.name:'',
-        'note': (data.summary)?data.summary:'',
-        'uri': data.id,
-        'url': keyId,
-        'avatar_remote_url': (data.icon)?data.icon.url:'',
-        'header_remote_url': (data.image)?data.image.url:'',
-        
-        'inbox_url': data.inbox,
-        'outbox_url': data.outbox,
-        'shared_inbox_url': (data.endpoints)?data.endpoints.sharedInbox:'',
-        'shared_outbox_url': '',
-        'followers_url': data.followers,
-        'following_url': data.following,
-        
-        'actor_type': data.type,
-        'discoverable': true
-      };
-
-      resolve([row]);
+      return [
+          {
+          'username': res.data.preferredUsername,
+          'domain': res.request.host,
+          'private_key': '',
+          'public_key': (res.data.publicKey)?res.data.publicKey.publicKeyPem:'',
+          
+          'display_name': (res.data.name)?res.data.name:'',
+          'note': (res.data.summary)?res.data.summary:'',
+          'uri': res.data.id,
+          'url': keyId,
+          'avatar_remote_url': (res.data.icon)?res.data.icon.url:'',
+          'header_remote_url': (res.data.image)?res.data.image.url:'',
+          
+          'inbox_url': res.data.inbox,
+          'outbox_url': res.data.outbox,
+          'shared_inbox_url': (res.data.endpoints)?res.data.endpoints.sharedInbox:'',
+          'shared_outbox_url': '',
+          'followers_url': res.data.followers,
+          'following_url': res.data.following,
+          
+          'actor_type': res.data.type,
+          'discoverable': true
+        }
+      ];
+    })
+    .catch(function(err) {
+      return err;
     });
-  });
 };

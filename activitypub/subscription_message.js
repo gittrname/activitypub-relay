@@ -1,5 +1,5 @@
 var url = require('url');
-var request = require('request');
+var axios = require('axios');
 
 var Signature = require('../utils/signature_utilily');
 
@@ -33,24 +33,20 @@ subscription_message.prototype.sendActivity = function(inboxUrl, activity){
       path: inboxUrl.path,
       method: 'POST',
       headers: this.headers,
-      body: rawBody
+      body: rawBody,
+      data: rawBody
     });
 //  console.log(options);
   options['url'] = inboxUrl.href;
 
-
-  return new Promise(function(resolve, reject) {
-    request(options, function(err, res, data) {
-      
-      if (err) {
-        console.log("request fail.["+options.inboxUrl+"]");
-        console.error(err.message);
-        return reject(err);
-      }
-
-      resolve(res);
+  return axios(options)
+    .then(function(res) {
+      return res;
+    })
+    .catch(function(err) {
+      console.log("request fail.["+options.url+"]");
+      return err;
     });
-  });
 };
 
 module.exports = subscription_message;
