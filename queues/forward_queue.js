@@ -9,7 +9,7 @@ var config = require('../settings');
 
 //
 //
-module.exports = function(job) {
+module.exports = function(job, done) {
 
   //
   var subscriptionMessage = new SubscriptionMessage(config.relay.actor, config.relay.privateKey);
@@ -27,7 +27,7 @@ module.exports = function(job) {
   console.log('start forward queue process. keyId='+signParams['keyId']);
 
   // リクエスト元の公開鍵取得
-  return accountCache(signParams['keyId'])
+  accountCache(signParams['keyId'])
     .then(function(account) {
         
       // // Signatureの正当性チェック
@@ -85,6 +85,7 @@ module.exports = function(job) {
                 }
               })
               .catch(function(err) {
+                console.log(err);
                 // 配信失敗を結果ログに記録
                 subscriptionLog('forward',
                   forwardActivity.id, inboxUrl, false);
@@ -137,6 +138,7 @@ module.exports = function(job) {
                 }
               })
               .catch(function(err) {
+                console.log(err);
                 // 配信失敗を結果ログに記録
                 subscriptionLog('forward',
                   boastActivity.id, inboxUrl, false);
@@ -206,9 +208,12 @@ module.exports = function(job) {
         // 
         return Promise.resolve(account);
     })
+    .then(function(account) {
+      // 処理終了
+      done();
+    })
     .catch(function(err) {
-      console.log(err);
-      return reject(err);
+      done(err);
     });
 };
 

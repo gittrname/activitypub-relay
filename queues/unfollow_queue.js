@@ -11,7 +11,7 @@ var config = require('../settings');
 
 //
 //
-module.exports = function(job) {
+module.exports = function(job, done) {
 
   //
   var subscriptionMessage = new SubscriptionMessage(config.relay.actor, config.relay.privateKey);
@@ -24,7 +24,7 @@ module.exports = function(job) {
   console.log('start unfollow queue process. keyId='+signParams['keyId']);
 
   // リクエスト元の公開鍵取得
-  return accountCache(signParams['keyId'])
+  accountCache(signParams['keyId'])
     .then(function(account) {
       
       // Signatureの正当性チェック
@@ -70,7 +70,12 @@ module.exports = function(job) {
       return subscriptionMessage.sendActivity(
          account['shared_inbox_url'], activity.accept(client.body));
     })
+    .then(function(account) {
+      // 処理終了
+      done();
+    })
     .catch(function(err) {
       console.log(err);
+      done(err);
     });
 };

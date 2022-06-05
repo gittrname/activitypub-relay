@@ -12,7 +12,7 @@ var config = require('../settings');
 
 //
 //
-module.exports = function(job) {
+module.exports = function(job, done) {
 
   //
   var subscriptionMessage = new SubscriptionMessage(config.relay.actor, config.relay.privateKey);
@@ -34,7 +34,7 @@ module.exports = function(job) {
   console.log('start remote_follow queue process. target='+json.account);
 
   // アカウントの存在確認
-  return webfingerRequest(webfingerUrl)
+  webfingerRequest(webfingerUrl)
     .then(function(obj) {
 
       // アカウントのURL取得
@@ -66,8 +66,13 @@ module.exports = function(job) {
               account['shared_inbox_url'], activity.unfollow(account['uri']));
         });
     })
+    .then(function(account) {
+      // 処理終了
+      done();
+    })
     .catch(function(err) {
       console.log(err);
+      done(err);
     });
 };
 
