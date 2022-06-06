@@ -52,10 +52,17 @@ module.exports = function(job, done) {
             .then(function(rows) {
       
               if (rows.length > 0) {
+            
+                // id リスト
+                idList = [];
+                for(var i in rows) {
+                  idList.push(rows[i]['id']);
+                }
+
+                // 
                 return database('followers')
-                  .delete({
-                    'id': rows[0]['id']
-                  });
+                  .delete()
+                  .whereIn('id', idList);
               }
             });
           

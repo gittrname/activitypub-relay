@@ -51,15 +51,49 @@ module.exports = function(job, done) {
             return Promise.resolve(rows);
           } else {
             console.log('This relay is remove follow. targetId='+signParams['keyId']);
+
+            // id リスト
+            idList = [];
+            for(var i in rows) {
+              idList.push(rows[i]['id']);
+            }
+
             //
             // DB削除
             return database('relays')
               .delete()
-              .where({
-                'id': rows[0]['id']
-              });
+              .whereIn('id', idList);
           }
         });
+
+        // すでにFollowers登録されていないか確認
+        database('followers')
+          .select('id')
+          .where({
+            account_id: account['id'],
+            domain: account['domain']
+          })
+          .then(function(rows) {
+    
+            if (rows.length <= 0) {
+              console.log('This relay is not follow. targetId='+signParams['keyId']);
+  
+              return Promise.resolve(rows);
+            } else {
+              console.log('This relay is remove follow. targetId='+signParams['keyId']);
+
+              // id リスト
+              idList = [];
+              for(var i in rows) {
+                idList.push(rows[i]['id']);
+              }
+              //
+              // DB削除
+              return database('followers')
+                .delete()
+                .whereIn('id', idList);
+            }
+          });
 
       //
       cache.del(signParams['keyId']);

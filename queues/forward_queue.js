@@ -102,59 +102,6 @@ module.exports = function(job, done) {
     })
     .then(function(account) {
 
-      // フォロー先一覧取得
-      database('followers')
-        .innerJoin('accounts', 'followers.account_id', 'accounts.id')
-        .whereNot({'accounts.domain': account['domain']})
-        .where('followers.status', 1)
-        .then(function(rows) {
-          for(idx in rows) {
-            var inboxUrl = rows[idx]['inbox_url'];
-
-            // 転送
-            console.log('Boost Activity.'
-              +' form='+account['uri']+' to='+inboxUrl);
-            // ブースト
-            subscriptionMessage
-              .sendActivity(inboxUrl, boastActivity)
-              .then(function(res) {
-
-                if (res.status == 202) {
-                  // 配信成功を結果ログに記録
-                  subscriptionLog('forward',
-                    boastActivity.id, inboxUrl, true);
-                } else {
-                  if (res.status == undefined || res.status == 410) {
-                    // 配送先から取り消す
-                    database('followers').where('id', rows[idx]['id']).del();
-                  } else {
-                    // 配送先状態を変更する
-                    database('followers').where('id', rows[idx]['id']).update({'status': 0});
-                  }
-
-                  // 配信失敗を結果ログに記録
-                  subscriptionLog('forward',
-                    boastActivity.id, inboxUrl, false);
-                }
-              })
-              .catch(function(err) {
-                console.log(err);
-                // 配信失敗を結果ログに記録
-                subscriptionLog('forward',
-                  boastActivity.id, inboxUrl, false);
-                // 配送先状態を変更する
-                database('followers').where('id', rows[idx]['id']).update({'status': 0});
-              });
-          }
-
-          return Promise.resolve(rows);
-        });
-
-      // 
-      return Promise.resolve(account);
-    })
-    .then(function(account) {
-
       // タグ付き投稿であるか確認
       if (!forwardActivity.object.tag) {
         return Promise.resolve(account);
