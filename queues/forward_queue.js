@@ -66,26 +66,16 @@ module.exports = function(job, done) {
               .sendActivity(inboxUrl, forwardActivity)
               .then(function(res) {
 
-                if (res.status == 202) {
                   // 配信成功を結果ログに記録
                   subscriptionLog('forward',
                     forwardActivity.id, inboxUrl, true);
-                } else {
-                  if (res.status == undefined || res.status == 410) {
-                    // 配送先から取り消す
-                    database('relays').where('id', rows[idx]['id']).del();
-                  } else {
-                    // 配送先状態を変更する
-                    database('relays').where('id', rows[idx]['id']).update({'status': 0});
-                  }
 
                   // 配信失敗を結果ログに記録
                   subscriptionLog('forward',
                     forwardActivity.id, inboxUrl, false);
-                }
               })
               .catch(function(err) {
-                console.log(err);
+                console.log(err.message);
                 // 配信失敗を結果ログに記録
                 subscriptionLog('forward',
                   forwardActivity.id, inboxUrl, false);
