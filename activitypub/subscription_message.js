@@ -45,7 +45,7 @@ subscription_message.prototype.sendActivity = function(inboxUrl, activity){
     })
     .catch(function(err) {
       console.log("request fail.["+options.url+"]");
-      return err;
+      throw err;
     });
 };
 
