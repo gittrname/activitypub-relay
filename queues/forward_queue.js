@@ -51,38 +51,67 @@ module.exports = function(job, done) {
 
       // リレー先一覧取得
       database('relays')
+        .select([
+          'relays.id',
+          'relays.account_id',
+          'relays.domain',
+          'relays.created_at',
+          'relays.updated_at',
+          'relays.status',
+          'accounts.username',
+          'accounts.uri',
+          'accounts.url',
+          'accounts.inbox_url',
+          'accounts.shared_inbox_url',
+        ])
         .innerJoin('accounts', 'relays.account_id', 'accounts.id')
         .whereNot({'accounts.domain': account['domain']})
         .where('relays.status', 1)
         .then(function(rows) {
-          for(idx in rows) {
-            var inboxUrl = rows[idx]['inbox_url'];
 
-            // 転送
-            console.log('Forward Activity.'
-              +' form='+account['uri']+' to='+inboxUrl);
+          for(idx in rows) {
+
             // 単純フォーワード
+            console.log('Forward Activity.'
+            +' form='+account['uri']+' to='+rows[idx]['inbox_url']);
+
             subscriptionMessage
-              .sendActivity(inboxUrl, forwardActivity)
+              .sendActivity(rows[idx]['inbox_url'], forwardActivity)
               .then(function(res) {
 
-                  // 配信成功を結果ログに記録
-                  subscriptionLog('forward',
-                    forwardActivity.id, inboxUrl, true);
-
-                  // 配信失敗を結果ログに記録
-                  subscriptionLog('forward',
-                    forwardActivity.id, inboxUrl, false);
+                // 配信成功を結果ログに記録
+                influx.writePoints([
+                  {
+                    measurement: 'forward',
+                    tags: {inbox_url: res.config.url},
+                    fields: {id: forwardActivity.id, result: true}
+                  }
+                ]);
               })
               .catch(function(err) {
                 console.log(err.message);
+
                 // 配信失敗を結果ログに記録
-                subscriptionLog('forward',
-                  forwardActivity.id, inboxUrl, false);
-                // 配送先状態を変更する
-                database('relays').where('id', rows[idx]['id']).update({'status': 0}).catch(function(err) {
-                  console.log(err.message);
-                });
+                influx.writePoints([
+                  {
+                    measurement: 'forward',
+                    tags: {inbox_url: err.config.url},
+                    fields: {id: forwardActivity.id, result: false}
+                  }
+                ]);
+
+                // 配送不能ドメインのステータスを変更
+                database('relays')
+                .select('relays.id')
+                .innerJoin('accounts', 'relays.account_id', 'accounts.id')
+                .where({'accounts.inbox_url': err.config.url})
+                .then(function(relayIds) {
+                  for(i in relayIds)
+                  database('relays').where('id', relayIds[i]['id'])
+                    .update({'status': 0}).catch(function(err) {
+                      console.log(err.message);
+                    });
+                })
               });
           }
 
