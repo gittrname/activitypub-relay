@@ -80,7 +80,9 @@ module.exports = function(job, done) {
                 subscriptionLog('forward',
                   forwardActivity.id, inboxUrl, false);
                 // 配送先状態を変更する
-                database('relays').where('id', rows[idx]['id']).update({'status': 0});
+                database('relays').where('id', rows[idx]['id']).update({'status': 0}).catch(function(err) {
+                  console.log(err.message);
+                });
               });
           }
 
