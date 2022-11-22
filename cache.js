@@ -4,5 +4,5 @@ var config = require('./settings');
 
 module.exports = new LruCache({
   max: config.cache.size,
-  maxAge: config.cache.limit
+  ttl: config.cache.limit
 });

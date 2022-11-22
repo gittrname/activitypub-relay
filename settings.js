@@ -57,8 +57,8 @@ module.exports = {
 
   // request cache
   cache: {
-    size:  (process.env.CACHE_SIZE) ? Number(process.env.CACHE_SIZE): 100,
-    limit: 60 * 60 * 1000 // 1H
+    size:  (process.env.CACHE_SIZE) ? Number(process.env.CACHE_SIZE): 1024,
+    limit: 10 * 60 * 1000 // 10m
   },
 
 
