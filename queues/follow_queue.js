@@ -48,7 +48,8 @@ module.exports = function(job, done) {
             return database('relays')
               .insert({
                 'account_id': account['id'],
-                'domain': account['domain']
+                'domain': account['domain'],
+                'status': 1
               });
           }
         });

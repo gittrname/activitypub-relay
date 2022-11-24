@@ -100,18 +100,18 @@ module.exports = function(job, done) {
                   }
                 ]);
 
-                // 配送不能ドメインのステータスを変更
-                database('relays')
-                .select('relays.id')
-                .innerJoin('accounts', 'relays.account_id', 'accounts.id')
-                .where({'accounts.inbox_url': err.config.url})
-                .then(function(relayIds) {
-                  for(i in relayIds)
-                  database('relays').where('id', relayIds[i]['id'])
-                    .update({'status': 0}).catch(function(err) {
-                      console.log(err.message);
-                    });
-                })
+                // // 配送不能ドメインのステータスを変更
+                // database('relays')
+                //   .select('relays.id')
+                //   .innerJoin('accounts', 'relays.account_id', 'accounts.id')
+                //   .where({'accounts.inbox_url': err.config.url})
+                //   .then(function(relayIds) {
+                //     for(i in relayIds)
+                //     database('relays').where('id', relayIds[i]['id'])
+                //       .update({'status': 0}).catch(function(err) {
+                //         console.log(err.message);
+                //       });
+                //   });
               });
           }
 
