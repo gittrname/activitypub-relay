@@ -101,10 +101,13 @@ module.exports = function(job, done) {
                 ]);
 
                 // 配送不能ドメインのステータスを変更
-                if (err.response != undefined
-                  && err.response.status >= 500) {
-                    // 一時的な配送エラーとして処理
-                    return;
+                if (err.code == 'ECONNABORTED') {
+                  // タイムアウトはビジー状態として処理
+                  return;
+                } else if (err.code == 'ERR_BAD_RESPONSE'
+                    && err.response.status >= 500) {
+                  // 一時的な配送エラーとして処理
+                  return;
                 } else {
                   database('relays')
                     .select('relays.id')
