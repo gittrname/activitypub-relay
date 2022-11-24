@@ -38,6 +38,7 @@ subscription_message.prototype.sendActivity = function(inboxUrl, activity){
     });
 //  console.log(options);
   options['url'] = inboxUrl.href;
+  options['timeout'] = 30000;
 
   return axios(options)
     .then(function(res) {
