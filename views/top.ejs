@@ -116,7 +116,7 @@
                 <% instances.forEach(function(val) { %>
                   <tr>
                     <td><%=val['domain']%></td>
-                    <td><%=(val['status'])?'Active':'UnActive'%></td>
+                    <td><%=(val['status'])?'配送中':'配送停止'%></td>
                   </tr>
                 <% }) %>
               </tbody>
