@@ -101,7 +101,7 @@ module.exports = function(job, done) {
                 ]);
 
                 // 配送不能ドメインのステータスを変更
-                if (err.code == 'ECONNABORTED') {
+                if (err.code == 'ETIMEDOUT') {
                   // タイムアウトはビジー状態として処理
                   return;
                 } else if (err.code == 'ERR_BAD_RESPONSE'
