@@ -1,6 +1,6 @@
 {
   "name": "activitypub-relay",
-  "version": "0.1.11",
+  "version": "0.1.13",
   "description": "Nodejsで実装したActivityPub Relay Server",
   "main": "./bin/www",
   "scripts": {
