@@ -101,11 +101,10 @@ module.exports = function(job, done) {
                 ]);
 
                 // 配送不能ドメインのステータスを変更
-                if (err.code == 'ETIMEDOUT') {
+                if (err.response == undefined) {
                   // タイムアウトはビジー状態として処理
                   return;
-                } else if (err.response != undefined
-                  && err.response.status >= 500) {
+                } else if (err.response.status >= 500) {
                   // 一時的な配送エラーとして処理
                   return;
                 } else {
