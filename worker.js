@@ -3,6 +3,11 @@ var Queue = require('bull');
 // 設定をロード
 var config = require('./settings');
 
+// 「removeOnComplete: true」の設定を追加する
+config.defaultJobOptions = {
+  removeOnComplete: true
+};
+
 // 各キューを生成
 var follow = new Queue('follow', config);
 var unfollow = new Queue('unfollow', config);
