@@ -143,43 +143,6 @@ module.exports = function(job, done) {
     })
     .then(function(account) {
 
-      // タグ付き投稿であるか確認
-      if (!forwardActivity.object.tag) {
-        return Promise.resolve(account);
-      }
-
-      // タグ登録
-      for(idx in forwardActivity.object.tag) {
-        console.log('insert hashtag.['+forwardActivity.object.tag[idx].name+']');
-
-        database('tags').insert({
-          type: forwardActivity.object.tag[idx].type,
-          href: forwardActivity.object.tag[idx].href,
-          name: forwardActivity.object.tag[idx].name
-        });
-
-        influx.writePoints([
-          {
-            measurement: 'hashtag',
-            fields: {
-              id: forwardActivity.id
-            },
-            tags: {
-              name: forwardActivity.object.tag[idx].name,
-              type: forwardActivity.object.tag[idx].type
-            }
-          }
-        ])
-        .catch(function(err) {
-          console.log(err);
-        });
-      }
-
-      // 
-      return Promise.resolve(account);
-    })
-    .then(function(account) {
-
       // ドメインの配信状況確認
       database('relays')
         .where({'domain': account['domain']})

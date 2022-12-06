@@ -1,13 +1,22 @@
 var express = require('express');
-var database = require('../database');
+const { ExpressAdapter, createBullBoard, BullAdapter } = require('@bull-board/express');
 
 var router = express.Router();
 
-// 設定ロード
-var config = require('../settings');
-
-// キューイング管理
-//const Arena = require('bull-arena');
+// bull-dashborad
+const serverAdapter = new ExpressAdapter();
+var worker = require('../worker');
+const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
+  queues: [
+    new BullAdapter(worker.followQueue),
+    new BullAdapter(worker.unfollowQueue),
+    new BullAdapter(worker.forwardQueue),
+    new BullAdapter(worker.remoteFollowQueue),
+    new BullAdapter(worker.remoteUnFollowQueue),
+  ],
+  serverAdapter: serverAdapter,
+});
+serverAdapter.setBasePath('/admin/queues');
 
 // 認証機構
 var passport = require('passport');
@@ -29,6 +38,7 @@ router.post("/login", passport.authenticate("local",{
   failureRedirect: "/admin/login",
   failureFlash: true
 }));
+
 //
 // ログアウト
 router.get("/logout", function(req, res, next) {
@@ -54,37 +64,7 @@ router.use("/accounts", isAuthenticated, function(req, res, next) {
   res.render("admin/account");
 });
 
-//
-// Tagページ
-router.use("/tags", isAuthenticated, function(req, res, next) {
-  res.render("admin/tag");
-});
-
-//
 // Queueページ
-// router.use("/queues", isAuthenticated, Arena({
-//   queues: [
-//     {
-//       name: "followQueue",
-//       hostId: "redis",
-//       redis: config.redis
-//     },
-//     {
-//       name: "unfollowQueue",
-//       hostId: "redis",
-//       redis: config.redis
-//     },
-//     {
-//       name: "forwardQueue",
-//       hostId: "redis",
-//       redis: config.redis
-//     },
-//     {
-//       name: "remoteFollowQueue",
-//       hostId: "redis",
-//       redis: config.redis
-//     }
-//   ]
-// }));
+router.use("/queues", isAuthenticated, serverAdapter.getRouter());
 
 module.exports = router;

@@ -268,50 +268,5 @@ router.use("/accounts", isAuthenticated, function(req, res, next) {
   });
 });
 
-//
-// タグ一覧取得
-router.use("/tags", isAuthenticated, function(req, res, next) {
-
-  var start = (req.query.start)?req.query.start:0;
-  var length = (req.query.length)?req.query.length:10;
-
-  var search = (req.query.search)?req.query.search:{value:"", regex:""};
-  var order = (req.query.order[0])?req.query.order[0]:{column:"", dir:""};
-
-  var column = (req.query.columns)?req.query.columns:[{data:""}];
-
-  Promise.all([
-    database('tags')
-      .count('name', {as: 'count'})
-      .max('updated_at', {as: 'last_use'})
-      .where('name', 'like', search.value + "%")
-      .where('type', 'Hashtag')
-      .groupBy('name')
-      .limit(length)
-      .offset(start)
-      .orderBy(column[order.column].data, order.dir)
-      .select('name'),
-    database('tags')
-      .count()
-      .first(),
-    database('tags')
-      .where('name', 'like', search.value + "%")
-      .where('type', 'Hashtag')
-      .count(database.raw('distinct name'))
-      .first(),
-  ])
-  .then(function(result) {
-    res.json({
-      "draw": Number(req.query.draw),
-      "recordsTotal": Number(result[1].count),
-      "recordsFiltered": Number(result[2].count),
-      "data": result[0]
-    });
-  })
-  .catch(function(err) {
-    next(err);
-  });
-});
-
 
 module.exports = router;
