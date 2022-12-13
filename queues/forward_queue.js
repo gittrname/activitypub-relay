@@ -167,18 +167,3 @@ module.exports = function(job, done) {
       done(err);
     });
 };
-
-//
-// Subscriptionの結果を記録する
-function subscriptionLog(measurement, id, inboxUrl, result) {
-  return influx.writePoints([
-      {
-        measurement: measurement,
-        tags: {inbox_url: inboxUrl},
-        fields: {id: id, result: result}
-      }
-    ])
-    .catch(function(err) {
-      console.log(err);
-    });
-}
