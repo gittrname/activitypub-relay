@@ -128,9 +128,13 @@
           });
         }
       });
-      $("input[name='graphChg'").trigger("change");
 
-      // 日別の配信数
+      // 初回グラフの表示
+      $.get(API_WEEKLY, function(data) {
+        drawGraph(data, TYPE_YMD);
+      });
+
+      // 1日の集計テーブル表示
       $.get(API_DAILY, drawDailyTable);
     });
 
@@ -202,7 +206,7 @@
     }
 
     /*
-     * 表描画
+     * テーブル描画
      */
     function drawDailyTable(data) {
 
