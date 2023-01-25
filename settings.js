@@ -50,14 +50,9 @@ module.exports = {
     password: (process.env.INFLUX_PASSWORD) ? process.env.INFLUX_PASSWORD : "",
   },
 
-  // process queue
-  queue: {
-    pool: (process.env.QUEUE_POOL) ? Number(process.env.QUEUE_POOL): 5
-  },
-
   // request cache
   cache: {
-    size:  (process.env.CACHE_SIZE) ? Number(process.env.CACHE_SIZE): 1024,
+    size:  (process.env.CACHE_SIZE) ? Number(process.env.CACHE_SIZE): 2048,
     limit: 10 * 60 * 1000 // 10m
   },
 
