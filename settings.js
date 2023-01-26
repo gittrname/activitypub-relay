@@ -21,6 +21,11 @@ module.exports = {
     password: ''
   },
 
+  // process queue
+  queue: {
+    pool: (process.env.QUEUE_POOL) ? Number(process.env.QUEUE_POOL): 5
+  },
+
   // database
   database: {
     client: 'pg',
