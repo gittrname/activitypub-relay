@@ -184,6 +184,41 @@ router.use("/delivery/daily", isAuthenticated, function(req, res, next) {
 });
 
 //
+// インスタンス毎の配信数
+router.use("/delivery/instance", isAuthenticated, function(req, res, next) {
+
+  Promise.all([
+    influx.query(
+      "select  from forward"
+      + " where time > now() - 1d and time < now()"
+      + " group by time(1h) order by desc"
+    ),
+    influx.query(
+      "select count(result) from forward"
+      + " where time > now() - 1d and time < now()"
+      + " and result = true"
+      + " group by time(1h) order by desc"
+    ),
+    influx.query(
+      "select count(result) from forward"
+      + " where time > now() - 1d and time < now()"
+      + " and result = false"
+      + " group by time(1h) order by desc"
+    ),
+  ])
+  .then(function(result) {
+    res.json({
+      "domain": result[0],
+      "complite": result[1],
+      "failure": result[2],
+    });
+  })
+  .catch(function(err) {
+    next(err);
+  });
+});
+
+//
 // インスタンス一覧取得
 router.use("/instances", isAuthenticated, function(req, res, next) {
 

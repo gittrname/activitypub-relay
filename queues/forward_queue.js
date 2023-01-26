@@ -116,7 +116,7 @@ module.exports = function(job, done) {
 
                 // 配送不能ドメインのステータスを変更
                 if (result.reason.response == undefined){
-                  //if (result.reason.code == 'ENOTFOUND') {
+                  if (result.reason.code == 'ENOTFOUND') {
                     // ドメインが正引きできない
                     return database('relays')
                       .select('relays.id')
@@ -135,7 +135,7 @@ module.exports = function(job, done) {
   
                         return Promise.all(list);
                       });
-                  //}
+                  }
                 } else if (result.reason.response.status < 500) {
                   // 400番台エラー
                   return database('relays')
