@@ -192,7 +192,7 @@ const forwardFailFunc = function(err, activityId, account) {
         // レスポンス不正
         if (settings.queue.auto_unforward) { forwardStatusUpdate() };
       }
-    } else if (err.response.status < 500) {
+    } else if (err.response.status == 410) {
       // 400番台エラー
         if (settings.queue.auto_unforward) { forwardStatusUpdate() };
     }
