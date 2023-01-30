@@ -6,6 +6,7 @@ var accountCache = require('./account_cache');
 var database = require('../database');
 var influx = require('../influx');
 var config = require('../settings');
+const settings = require('../settings');
 
 //
 var subscriptionMessage = new SubscriptionMessage(config.relay.actor, config.relay.privateKey);
@@ -62,103 +63,25 @@ module.exports = function(job, done) {
             .whereNot({'accounts.domain': account['domain']})
             .where('relays.status', 1)
             .then(function(rows) {
-              return resolve(rows);
-            })
-        })
-        .then(function(rows) {
     
-          // 配送Promiseリスト作成
-          const promises = [];
-          for(idx in rows) {
-            promises.push(
-              subscriptionMessage
-                .sendActivity(rows[idx]['inbox_url'], forwardActivity)
-            );
-          }
-    
-          // 配送実行
-          return Promise.allSettled(promises);
-        })
-        .then(function(results) {
-          // 配送結果をもとに処理
-          results.forEach(function(result) {
-    
-            // 配送成功
-            if (result.status == 'fulfilled') {
-    
-              console.log('Forward Success.'
-              +' form='+account['uri']+' to='+result.value.config.url);
-    
-              // 配信成功を結果ログに記録
-              return influx.writePoints([
-                {
-                  measurement: 'forward',
-                  tags: {inbox_url: result.value.config.url},
-                  fields: {id: forwardActivity.id, result: true}
-                }
-              ]);
-            }
-            // 配送失敗
-            else if (result.status == 'rejected') {
-    
-              console.log('Forward Fail. ['+result.reason.message+']'
-              +' form='+account['uri']+' to='+result.reason.config.url);
-
-              // 配信失敗を結果ログに記録
-              return influx.writePoints([
-                {
-                  measurement: 'forward',
-                  tags: {inbox_url: result.reason.config.url},
-                  fields: {id: forwardActivity.id, result: false}
-                }
-              ])
-              .then(function(res){
-
-                // 配送不能ドメインのステータスを変更
-                if (result.reason.response == undefined){
-                  if (result.reason.code == 'ENOTFOUND') {
-                    // ドメインが正引きできない
-                    return database('relays')
-                      .select('relays.id')
-                      .innerJoin('accounts', 'relays.account_id', 'accounts.id')
-                      .where({'accounts.inbox_url': result.reason.config.url})
-                      .then(function(relayIds) {
-                        const list = [];
-                        for(i in relayIds) {
-                          list.push(
-                            database('relays').where('id', relayIds[i]['id'])
-                              .update({'status': 0}).catch(function(err) {
-                                console.log(err.message);
-                              })
-                          );
-                        }
-  
-                        return Promise.all(list);
-                      });
-                  }
-                } else if (result.reason.response.status < 500) {
-                  // 400番台エラー
-                  return database('relays')
-                    .select('relays.id')
-                    .innerJoin('accounts', 'relays.account_id', 'accounts.id')
-                    .where({'accounts.inbox_url': result.reason.config.url})
-                    .then(function(relayIds) {
-                      const list = [];
-                      for(i in relayIds) {
-                        list.push(
-                          database('relays').where('id', relayIds[i]['id'])
-                            .update({'status': 0}).catch(function(err) {
-                              console.log(err.message);
-                            })
-                        );
-                      }
-  
-                      return Promise.all(list);
-                    });
-                }
-              })
-            }
-          })
+              // 配送Promiseリスト作成
+              const promises = [];
+              for(idx in rows) {
+                promises.push(
+                  subscriptionMessage
+                    .sendActivity(rows[idx]['inbox_url'], forwardActivity)
+                    .then(function(res) {
+                      forwardSuccessFunc(res, forwardActivity.id, account);
+                    })
+                    .catch(function(err) {
+                      forwardFailFunc(err, forwardActivity.id, account);
+                    })
+                );
+              }
+        
+              // 配送実行
+              return Promise.allSettled(promises);
+            });
         });
 
         // 配送復帰処理
@@ -172,12 +95,16 @@ module.exports = function(job, done) {
               promises.push(
                 database('relays')
                   .where('id', rows[idx]['id'])
-                  .update({'status': 1})
+                  .update({'status': 1}).catch(function(err) {
+                    console.log(err.message);
+                  })
               );
             }
 
-            return Promise.all(promises);
+            return Promise.allSettled(promises);
           });
+
+        done();
 
         // 同期実行
         return Promise.all([
@@ -186,13 +113,88 @@ module.exports = function(job, done) {
         ]);
       // }
     })
-    .then(function(results) {
-      // 処理終了
-      return done(results);
-    })
     .catch(function(err) {
-      //done(err);
       console.log(err);
-      return done();
     });
+};
+
+/**
+ * 配信成功処理
+ */
+const forwardSuccessFunc = function(res, activityId, account) {
+    
+  console.log('Forward Success.'
+  +' form='+account['uri']+' to='+res.config.url);
+
+  // 配信成功を結果ログに記録
+  return influx.writePoints([
+    {
+      measurement: 'forward',
+      tags: {inbox_url: res.config.url},
+      fields: {id: activityId, result: true}
+    }
+  ])
+  .catch(function(err) {
+    console.log(err.message);
+  })
+};
+
+/**
+ * 配信失敗処理
+ */
+const forwardFailFunc = function(err, activityId, account) {
+
+  console.log('Forward Fail. ['+err.message+']'
+  +' form='+account['uri']+' to='+err.config.url);
+
+  // 配送ステータス更新処理
+  const forwardStatusUpdate = function() {
+    return database('relays')
+      .select('relays.id')
+      .innerJoin('accounts', 'relays.account_id', 'accounts.id')
+      .where({'accounts.inbox_url': err.config.url})
+      .then(function(relayIds) {
+        const list = [];
+        for(i in relayIds) {
+          list.push(
+            database('relays')
+              .where('id', relayIds[i]['id']).whereNot('status', 0)
+              .update({'status': 0}).catch(function(err) {
+                console.log(err.message);
+              })
+          );
+        }
+
+        return Promise.all(list);
+      });
+  };
+
+  // 配信失敗を結果ログに記録
+  return influx.writePoints([
+    {
+      measurement: 'forward',
+      tags: {inbox_url: err.config.url},
+      fields: {id: activityId, result: false}
+    }
+  ])
+  .catch(function(err) {
+    console.log(err.message);
+  })
+  .finally(function() {
+
+    // 配送不能ドメインのステータスを変更
+    if (err.response == undefined){
+      //console.log('ERROR CODE: ' + err.code);
+      if (err.code == 'ENOTFOUND') {
+        // ドメイン逆引きエラー
+        if (settings.queue.auto_unforward) { forwardStatusUpdate() };
+      } else if (err.code == 'ERR_BAD_RESPONSE') {
+        // レスポンス不正
+        if (settings.queue.auto_unforward) { forwardStatusUpdate() };
+      }
+    } else if (err.response.status < 500) {
+      // 400番台エラー
+        if (settings.queue.auto_unforward) { forwardStatusUpdate() };
+    }
+   });
 };

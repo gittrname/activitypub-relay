@@ -1,6 +1,9 @@
 var url = require('url');
 var axios = require('axios');
 
+// 設定をロード
+var config = require('../settings');
+
 var Signature = require('../utils/signature_utilily');
 
 
@@ -15,7 +18,7 @@ var subscription_message = function(actor, privateKey) {
   };
 };
 
-subscription_message.prototype.sendActivity = async function(inboxUrl, activity){
+subscription_message.prototype.sendActivity = function(inboxUrl, activity){
 
   // host
   var inboxUrl = url.parse(inboxUrl);
@@ -38,7 +41,7 @@ subscription_message.prototype.sendActivity = async function(inboxUrl, activity)
     });
 //  console.log(options);
   options['url'] = inboxUrl.href;
-  options['timeout'] = 3000;
+  options['timeout'] = config.queue.timeout;
 
   return axios(options);
 };

@@ -23,7 +23,9 @@ module.exports = {
 
   // process queue
   queue: {
-    pool: (process.env.QUEUE_POOL) ? Number(process.env.QUEUE_POOL): 30
+    pool: (process.env.QUEUE_POOL) ? Number(process.env.QUEUE_POOL): 20,
+    timeout: (process.env.QUEUE_TIMEOUT) ? Number(process.env.QUEUE_TIMEOUT): 5000,
+    auto_unforward: (process.env.AUTO_UNFORWARD) ? Number(process.env.AUTO_UNFORWARD): true
   },
 
   // database
