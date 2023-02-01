@@ -28,7 +28,30 @@ module.exports = function(job, done) {
   console.log('start forward queue process. keyId='+signParams['keyId']);
 
   // リクエスト元の公開鍵取得
-  return accountCache(signParams['keyId'])
+  accountCache(signParams['keyId'])
+    .then(function(account) {
+      
+      // 配送復帰処理
+      database('relays')
+          .where({'domain': account['domain']})
+          .where('status', 0)
+          .then(function(rows) {
+            const promises = [];
+            for(idx in rows) {
+              // 配送先状態を変更する
+              promises.push(database('relays')
+                .where('id', rows[idx]['id'])
+                .update({'status': 1}).catch(function(err) {
+                  console.log(err.message);
+                })
+              );
+            }
+
+            return Promise.all(promises);
+          });
+
+      return Promise.resolve(account);
+    })
     .then(function(account) {
 
       // // Signatureの正当性チェック
@@ -42,79 +65,49 @@ module.exports = function(job, done) {
       // } else {
       
         // 配送処理
-        const deliveryPromise = new Promise(function(resolve, reject) {
-    
-          // リレー先一覧取得
-          return database('relays')
-            .select([
-              'relays.id',
-              'relays.account_id',
-              'relays.domain',
-              'relays.created_at',
-              'relays.updated_at',
-              'relays.status',
-              'accounts.username',
-              'accounts.uri',
-              'accounts.url',
-              'accounts.inbox_url',
-              'accounts.shared_inbox_url',
-            ])
-            .innerJoin('accounts', 'relays.account_id', 'accounts.id')
-            .whereNot({'accounts.domain': account['domain']})
-            .where('relays.status', 1)
-            .then(function(rows) {
-    
-              // 配送Promiseリスト作成
-              const promises = [];
-              for(idx in rows) {
-                promises.push(
-                  subscriptionMessage
-                    .sendActivity(rows[idx]['inbox_url'], forwardActivity)
-                    .then(function(res) {
-                      forwardSuccessFunc(res, forwardActivity.id, account);
-                    })
-                    .catch(function(err) {
-                      forwardFailFunc(err, forwardActivity.id, account);
-                    })
-                );
-              }
-        
-              // 配送実行
-              return Promise.allSettled(promises);
-            });
-        });
-
-        // 配送復帰処理
-        const reinstatementPromise = database('relays')
-          .where({'domain': account['domain']})
-          .where('status', 0)
+        database('relays')
+          .select([
+            'relays.id',
+            'relays.account_id',
+            'relays.domain',
+            'relays.created_at',
+            'relays.updated_at',
+            'relays.status',
+            'accounts.username',
+            'accounts.uri',
+            'accounts.url',
+            'accounts.inbox_url',
+            'accounts.shared_inbox_url',
+          ])
+          .innerJoin('accounts', 'relays.account_id', 'accounts.id')
+          .whereNot({'accounts.domain': account['domain']})
+          .where('relays.status', 1)
           .then(function(rows) {
-            const promises = []
+  
+            // 配送Promiseリスト作成
+            const promises = [];
             for(idx in rows) {
-              // 配送先状態を変更する
-              promises.push(
-                database('relays')
-                  .where('id', rows[idx]['id'])
-                  .update({'status': 1}).catch(function(err) {
-                    console.log(err.message);
-                  })
+              promises.push(subscriptionMessage
+                .sendActivity(rows[idx]['inbox_url'], forwardActivity)
+                .then(function(res) {
+                  return forwardSuccessFunc(res, forwardActivity.id, account);
+                })
+                .catch(function(err) {
+                  return forwardFailFunc(err, forwardActivity.id, account);
+                })
               );
             }
 
-            return Promise.allSettled(promises);
+            return Promise.all(promises);
           });
-
-        done();
-
-        // 同期実行
-        return Promise.all([
-          deliveryPromise,
-          reinstatementPromise
-        ]);
       // }
+      return Promise.resolve(account);
+    })
+    .then(function(account) {
+      return done();
     })
     .catch(function(err) {
-      console.log(err);
+      return done(err);
     });
 };
 
@@ -134,8 +127,8 @@ const forwardSuccessFunc = function(res, activityId, account) {
       fields: {id: activityId, result: true}
     }
   ])
-  .catch(function(err) {
-    console.log(err.message);
+  .catch(function(e) {
+    console.log(e.message);
   })
 };
 
@@ -159,8 +152,8 @@ const forwardFailFunc = function(err, activityId, account) {
           list.push(
             database('relays')
               .where('id', relayIds[i]['id']).whereNot('status', 0)
-              .update({'status': 0}).catch(function(err) {
-                console.log(err.message);
+              .update({'status': 0}).catch(function(e) {
+                console.log(e.message);
               })
           );
         }
@@ -177,8 +170,8 @@ const forwardFailFunc = function(err, activityId, account) {
       fields: {id: activityId, result: false}
     }
   ])
-  .catch(function(err) {
-    console.log(err.message);
+  .catch(function(e) {
+    console.log(e.message);
   })
   .finally(function() {
 
@@ -191,10 +184,16 @@ const forwardFailFunc = function(err, activityId, account) {
       } else if (err.code == 'ERR_BAD_RESPONSE') {
         // レスポンス不正
         if (settings.queue.auto_unforward) { forwardStatusUpdate() };
+      } else if (err.code == 'ETIMEDOUT') {
+        // 接続タイムアウト
+        if (settings.queue.auto_unforward) { forwardStatusUpdate() };
       }
     } else if (err.response.status == 410) {
-      // 400番台エラー
-        if (settings.queue.auto_unforward) { forwardStatusUpdate() };
+      // 410エラー
+      if (settings.queue.auto_unforward) { forwardStatusUpdate() };
+    } else if (err.response.status > 499) {
+      // 500番台エラー
+      if (settings.queue.auto_unforward) { forwardStatusUpdate() };
     }
    });
 };

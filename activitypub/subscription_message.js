@@ -18,7 +18,7 @@ var subscription_message = function(actor, privateKey) {
   };
 };
 
-subscription_message.prototype.sendActivity = function(inboxUrl, activity){
+subscription_message.prototype.sendActivity = async function(inboxUrl, activity){
 
   // host
   var inboxUrl = url.parse(inboxUrl);
@@ -33,17 +33,15 @@ subscription_message.prototype.sendActivity = function(inboxUrl, activity){
     this.keyId,
     this.privateKey,
     {
+      url: inboxUrl.href,
       path: inboxUrl.path,
+      timout: config.queue.timeout,
       method: 'POST',
       headers: this.headers,
-      body: rawBody,
-      data: rawBody
+      data: rawBody,
     });
-//  console.log(options);
-  options['url'] = inboxUrl.href;
-  options['timeout'] = config.queue.timeout;
 
-  return axios(options);
+  return await axios(options);
 };
 
 module.exports = subscription_message;
