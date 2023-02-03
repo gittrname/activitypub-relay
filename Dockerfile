@@ -1,4 +1,4 @@
-FROM node:16-stretch
+FROM node:18
 
 # install gcc
 RUN apt-get update \
