@@ -126,13 +126,13 @@ module.exports = async function(job, done) {
 const forwardSuccessFunc = function(res, activityId, account) {
   
   console.log('Forward Success.'
-  +' form='+account['uri']+' to='+res.config.url);
+  +' form='+account['uri']+' to='+res.url);
 
   // 配信成功を結果ログに記録
   return influx.writePoints([
     {
       measurement: 'forward',
-      tags: {inbox_url: res.config.url},
+      tags: {inbox_url: res.url},
       fields: {id: activityId, result: true}
     }
   ])
@@ -147,14 +147,14 @@ const forwardSuccessFunc = function(res, activityId, account) {
 const forwardFailFunc = function(err, activityId, account) {
 
   console.log('Forward Fail. ['+err.message+']'
-  +' form='+account['uri']+' to='+err.config.url);
+  +' form='+account['uri']+' to='+err.url);
 
   // 配送ステータス更新処理
   const forwardStatusUpdate = function() {
     return database('relays')
       .select('relays.id')
       .innerJoin('accounts', 'relays.account_id', 'accounts.id')
-      .where({'accounts.inbox_url': err.config.url})
+      .where({'accounts.inbox_url': err.url})
       .then(function(relayIds) {
         var promises = []; 
         for(i in relayIds) {
@@ -173,7 +173,7 @@ const forwardFailFunc = function(err, activityId, account) {
   return influx.writePoints([
     {
       measurement: 'forward',
-      tags: {inbox_url: err.config.url},
+      tags: {inbox_url: err.url},
       fields: {id: activityId, result: false}
     }
   ])

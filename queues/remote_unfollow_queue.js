@@ -1,4 +1,4 @@
-var axios = require('axios');
+var fetch = require('node-fetch');
 var url = require('url');
 
 var Activity = require('../activitypub/activity');
@@ -90,12 +90,11 @@ module.exports = function(job, done) {
 var webfingerRequest = function(url) {
 
   var options = {
-    url: url,
     method: 'GET',
     json: true
   };
 
-  return axios(options)
+  return fetch(url, options)
     .then(function(res) {
       return res.data;
     })

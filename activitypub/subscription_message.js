@@ -1,5 +1,5 @@
 var url = require('url');
-var axios = require('axios').default;
+var fetch = require('node-fetch');
 
 const packageJson = require("../package.json")
 
@@ -13,13 +13,9 @@ var subscription_message = function(actor, privateKey) {
 
   this.keyId = actor+'#main-key';
   this.privateKey = privateKey;
-
-  this.request = axios.create({
-    timout: config.queue.timeout
-  });
 };
 
-subscription_message.prototype.sendActivity = async function(inboxUrl, activity) {
+subscription_message.prototype.sendActivity = function(inboxUrl, activity) {
 
   // host
   var inboxUrl = url.parse(inboxUrl);
@@ -42,11 +38,12 @@ subscription_message.prototype.sendActivity = async function(inboxUrl, activity)
     this.privateKey,
     {
       method: 'POST',
+      timout: config.queue.timeout,
       headers: headers,
-      data: rawBody
+      body: rawBody
     });
 
-    return await this.request.post(inboxUrl.href, rawBody, options);
+    return fetch(inboxUrl.href, options);
 };
 
 module.exports = subscription_message;

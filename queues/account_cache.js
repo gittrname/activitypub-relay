@@ -1,4 +1,4 @@
-var axios = require('axios');
+var fetch = require('node-fetch');
 
 var database = require('../database');
 var cache = require('../cache');
@@ -59,13 +59,12 @@ module.exports = async function(keyId) {
 var accountRequest = function(keyId) {
 
   var options = {
-    url: keyId,
     method: 'GET',
     headers: {'Accept': 'application/activity+json, application/ld+json'},
     json: true
   };
 
-  return axios(options)
+  return fetch(keyId, options)
     .then(function(res) {
 
       // レコード作成
