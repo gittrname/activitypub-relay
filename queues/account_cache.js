@@ -5,15 +5,13 @@ var cache = require('../cache');
 
 //
 //
-module.exports = function(keyId) {
-
-  return new Promise(function(resolve, reject) {
+module.exports = async function(keyId) {
 
     if (cache.has(keyId)) {
       console.log('has cache. ['+keyId+']');
 
       // キャッシュがあればそれで
-      resolve(cache.get(keyId));
+      return cache.get(keyId);
     } else {
       console.log('no cache. ['+keyId+']');
 
@@ -51,13 +49,9 @@ module.exports = function(keyId) {
           cache.set(keyId, rows[0]);
 
           // 取得したアカウントをコールバックに返却
-          resolve(rows[0]);
+          return rows[0];
         })
-        .catch(function(err) {
-          reject(err);
-        });
     }
-  });
 };
 
 //

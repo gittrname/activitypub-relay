@@ -1,5 +1,7 @@
 var url = require('url');
-var axios = require('axios');
+var axios = require('axios').default;
+
+const packageJson = require("../package.json")
 
 // 設定をロード
 var config = require('../settings');
@@ -12,36 +14,39 @@ var subscription_message = function(actor, privateKey) {
   this.keyId = actor+'#main-key';
   this.privateKey = privateKey;
 
-  this.headers = {
-    'content-type': 'application/activity+json',
-    'date': (new Date()).toGMTString()
-  };
+  this.request = axios.create({
+    timout: config.queue.timeout
+  });
 };
 
-subscription_message.prototype.sendActivity = async function(inboxUrl, activity){
+subscription_message.prototype.sendActivity = async function(inboxUrl, activity) {
 
   // host
   var inboxUrl = url.parse(inboxUrl);
-  this.headers['host'] = inboxUrl.host;
+
+  // header,
+  var headers = {
+    'host': inboxUrl.host,
+    'user-agent': 'Enjoy Relay '+packageJson.version,
+    'content-type': 'application/activity+json',
+    'date': (new Date()).toGMTString()
+  };
 
   // digiest
   var rawBody = JSON.stringify(activity);
-  this.headers['digest'] = Signature.digest(rawBody);
+  headers['digest'] = Signature.digest(rawBody);
 
   // request
   var options = Signature.signRequest(
     this.keyId,
     this.privateKey,
     {
-      url: inboxUrl.href,
-      path: inboxUrl.path,
-      timout: config.queue.timeout,
       method: 'POST',
-      headers: this.headers,
-      data: rawBody,
+      headers: headers,
+      data: rawBody
     });
 
-  return await axios(options);
+    return await this.request.post(inboxUrl.href, rawBody, options);
 };
 
 module.exports = subscription_message;

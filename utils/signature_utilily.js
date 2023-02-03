@@ -52,7 +52,12 @@ module.exports = {
           signeds.push('(request-target): '+req.method.toLowerCase()+' '+req.path);
           break;
         case 'digest':
-          var dataDigest = this.digest(req.data);
+          var dataDigest
+          if (req.body) {
+            dataDigest = this.digest(req.body);
+          } else {
+            dataDigest = this.digest(req.data);
+          }
           if (!req.headers['digest'] || req.headers['digest'] != dataDigest) {
             throw new Error('unmatch header digest.');
           }

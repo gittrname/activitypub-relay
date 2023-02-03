@@ -7,6 +7,7 @@ var database = require('../database');
 var influx = require('../influx');
 var config = require('../settings');
 const settings = require('../settings');
+const e = require('express');
 
 //
 var subscriptionMessage = new SubscriptionMessage(config.relay.actor, config.relay.privateKey);
@@ -14,7 +15,7 @@ var activity = new Activity(config.relay);
 
 //
 //
-module.exports = function(job, done) {
+module.exports = async function(job, done) {
       
   // Signatation Params
   var client = job.data.client;
@@ -28,94 +29,102 @@ module.exports = function(job, done) {
   console.log('start forward queue process. keyId='+signParams['keyId']);
 
   // リクエスト元の公開鍵取得
-  accountCache(signParams['keyId'])
-    .then(function(account) {
-      
-      // 配送復帰処理
-      database('relays')
-          .where({'domain': account['domain']})
-          .where('status', 0)
-          .then(function(rows) {
-            const promises = [];
-            for(idx in rows) {
-              // 配送先状態を変更する
-              promises.push(database('relays')
+  var account;
+  try {
+    account = await accountCache(signParams['keyId']);
+  } catch (e) {
+    console.log(e.message);
+    return done(e);
+  }
+
+  return await new Promise(function(resolve, reject) {
+
+    // Signatureの正当性チェック
+    if (!Signature.verifyRequest(account['public_key'], client)) {
+
+      // 拒否応答
+      subscriptionMessage.sendActivity(
+        account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
+
+      return reject(new Error('Invalid signature. keyId='+signParams['keyId']));
+    } else {
+
+      return resolve();
+    }
+  })
+  .then(function(res) {
+
+    // 配送復帰処理
+    return database('relays')
+        .where({'domain': account['domain']})
+        .where('status', 0)
+        .then(function(rows) {
+          var promises = []; 
+          for(idx in rows) {
+            // 配送先状態を変更する
+            promises.push(database('relays')
                 .where('id', rows[idx]['id'])
-                .update({'status': 1}).catch(function(err) {
+                .update({'status': 1})
+                .catch(function(err) {
                   console.log(err.message);
                 })
               );
-            }
+          }
 
-            return Promise.all(promises);
-          });
+          return Promise.all(promises);
+        });
+  })
+  .then(function(res) {
+    // 配送処理
+    return database('relays')
+        .select([
+          'relays.id',
+          'relays.account_id',
+          'relays.domain',
+          'relays.created_at',
+          'relays.updated_at',
+          'relays.status',
+          'accounts.username',
+          'accounts.uri',
+          'accounts.url',
+          'accounts.inbox_url',
+          'accounts.shared_inbox_url',
+        ])
+        .innerJoin('accounts', 'relays.account_id', 'accounts.id')
+        .whereNot({'accounts.domain': account['domain']})
+        .where('relays.status', 1)
+        .then(function(rows) {
+          // 配送Promiseリスト作成
+          var promises = []; 
+          for(idx in rows) {
+            promises.push(subscriptionMessage
+              .sendActivity(rows[idx]['inbox_url'], forwardActivity)
+              .then(function(res) {
+                return forwardSuccessFunc(res, forwardActivity.id, account);
+              })
+              .catch(function(err) {
+                return forwardFailFunc(err, forwardActivity.id, account);
+              })
+            );
+          }
 
-      return Promise.resolve(account);
-    })
-    .then(function(account) {
-
-      // // Signatureの正当性チェック
-      // if (!Signature.verifyRequest(account['public_key'], client)) {
-
-      //   // 拒否応答
-      //   subscriptionMessage.sendActivity(
-      //     account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
-
-      //   throw new Error('Invalid signature. keyId='+signParams['keyId']);
-      // } else {
-      
-        // 配送処理
-        database('relays')
-          .select([
-            'relays.id',
-            'relays.account_id',
-            'relays.domain',
-            'relays.created_at',
-            'relays.updated_at',
-            'relays.status',
-            'accounts.username',
-            'accounts.uri',
-            'accounts.url',
-            'accounts.inbox_url',
-            'accounts.shared_inbox_url',
-          ])
-          .innerJoin('accounts', 'relays.account_id', 'accounts.id')
-          .whereNot({'accounts.domain': account['domain']})
-          .where('relays.status', 1)
-          .then(function(rows) {
-  
-            // 配送Promiseリスト作成
-            const promises = [];
-            for(idx in rows) {
-              promises.push(subscriptionMessage
-                .sendActivity(rows[idx]['inbox_url'], forwardActivity)
-                .then(function(res) {
-                  return forwardSuccessFunc(res, forwardActivity.id, account);
-                })
-                .catch(function(err) {
-                  return forwardFailFunc(err, forwardActivity.id, account);
-                })
-              );
-            }
-
-            return Promise.all(promises);
-          });
-      // }
-      return Promise.resolve(account);
-    })
-    .then(function(account) {
-      return done();
-    })
-    .catch(function(err) {
-      return done(err);
-    });
+          return Promise.all(promises);
+        });
+  })
+  .catch(function(err) {
+    console.log(err);
+    done(err);
+  })
+  .finally(function() {
+    done();
+  });
 };
 
 /**
  * 配信成功処理
  */
 const forwardSuccessFunc = function(res, activityId, account) {
-    
+  
   console.log('Forward Success.'
   +' form='+account['uri']+' to='+res.config.url);
 
@@ -129,7 +138,7 @@ const forwardSuccessFunc = function(res, activityId, account) {
   ])
   .catch(function(e) {
     console.log(e.message);
-  })
+  });
 };
 
 /**
@@ -147,18 +156,16 @@ const forwardFailFunc = function(err, activityId, account) {
       .innerJoin('accounts', 'relays.account_id', 'accounts.id')
       .where({'accounts.inbox_url': err.config.url})
       .then(function(relayIds) {
-        const list = [];
+        var promises = []; 
         for(i in relayIds) {
-          list.push(
-            database('relays')
+            promises.push(database('relays')
               .where('id', relayIds[i]['id']).whereNot('status', 0)
               .update({'status': 0}).catch(function(e) {
                 console.log(e.message);
               })
-          );
+            );
+          return Promise.all(promises);
         }
-
-        return Promise.all(list);
       });
   };
 
@@ -170,30 +177,34 @@ const forwardFailFunc = function(err, activityId, account) {
       fields: {id: activityId, result: false}
     }
   ])
-  .catch(function(e) {
-    console.log(e.message);
-  })
-  .finally(function() {
+  .then(function(res) {
 
     // 配送不能ドメインのステータスを変更
     if (err.response == undefined){
       //console.log('ERROR CODE: ' + err.code);
       if (err.code == 'ENOTFOUND') {
         // ドメイン逆引きエラー
-        if (settings.queue.auto_unforward) { forwardStatusUpdate() };
+        if (settings.queue.auto_unforward) { return forwardStatusUpdate() };
       } else if (err.code == 'ERR_BAD_RESPONSE') {
         // レスポンス不正
-        if (settings.queue.auto_unforward) { forwardStatusUpdate() };
+        if (settings.queue.auto_unforward) { return forwardStatusUpdate() };
       } else if (err.code == 'ETIMEDOUT') {
         // 接続タイムアウト
-        if (settings.queue.auto_unforward) { forwardStatusUpdate() };
+        if (settings.queue.auto_unforward) { return forwardStatusUpdate() };
+      } else {
+        return res;
       }
     } else if (err.response.status == 410) {
       // 410エラー
-      if (settings.queue.auto_unforward) { forwardStatusUpdate() };
+      if (settings.queue.auto_unforward) { return forwardStatusUpdate() };
     } else if (err.response.status > 499) {
       // 500番台エラー
-      if (settings.queue.auto_unforward) { forwardStatusUpdate() };
+      if (settings.queue.auto_unforward) { return forwardStatusUpdate() };
+    } else {
+      return res;
     }
-   });
+  })
+  .catch(function(e) {
+    console.log(e.message);
+  });
 };
