@@ -154,7 +154,7 @@ const forwardFailFunc = function(err, activityId, account) {
     return database('relays')
       .select('relays.id')
       .innerJoin('accounts', 'relays.account_id', 'accounts.id')
-      .where({'accounts.inbox_url': err.url})
+      .where({'accounts.inbox_url': account['inbox_url']})
       .then(function(relayIds) {
         var promises = []; 
         for(i in relayIds) {
