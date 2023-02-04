@@ -38,7 +38,7 @@ subscription_message.prototype.sendActivity = function(inboxUrl, activity) {
     this.privateKey,
     {
       method: 'POST',
-      timout: config.queue.timeout,
+      timeout: config.queue.timeout,
       headers: headers,
       body: rawBody
     });
