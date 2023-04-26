@@ -15,12 +15,6 @@
             ],
             //"envFile": "${workspaceFolder}/.env.development"
             "envFile": "${workspaceFolder}/.env.production"
-        },
-        {
-          "name": "Attach",
-          "type": "node",
-          "request": "attach",
-          "port": 5858
         }
     ]
 }

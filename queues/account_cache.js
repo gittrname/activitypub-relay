@@ -1,4 +1,5 @@
 var fetch = require('node-fetch');
+var url = require('url');
 
 var database = require('../database');
 var cache = require('../cache');
@@ -56,7 +57,7 @@ module.exports = async function(keyId) {
 
 //
 // アカウント情報取得
-var accountRequest = function(keyId) {
+var accountRequest = async function(keyId) {
 
   var options = {
     method: 'GET',
@@ -64,37 +65,42 @@ var accountRequest = function(keyId) {
     json: true
   };
 
-  return fetch(keyId, options)
+  var json = await fetch(keyId, options)
     .then(function(res) {
-
-      // レコード作成
-      return [
-          {
-          'username': res.data.preferredUsername,
-          'domain': res.request.host,
-          'private_key': '',
-          'public_key': (res.data.publicKey)?res.data.publicKey.publicKeyPem:'',
-          
-          'display_name': (res.data.name)?res.data.name:'',
-          'note': (res.data.summary)?res.data.summary:'',
-          'uri': res.data.id,
-          'url': keyId,
-          'avatar_remote_url': (res.data.icon)?res.data.icon.url:'',
-          'header_remote_url': (res.data.image)?res.data.image.url:'',
-          
-          'inbox_url': res.data.inbox,
-          'outbox_url': res.data.outbox,
-          'shared_inbox_url': (res.data.endpoints)?res.data.endpoints.sharedInbox:'',
-          'shared_outbox_url': '',
-          'followers_url': res.data.followers,
-          'following_url': res.data.following,
-          
-          'actor_type': res.data.type,
-          'discoverable': true
-        }
-      ];
-    })
-    .catch(function(err) {
-      return err;
+      if (!res.ok) {
+        throw new Error('Response fail.[' + res.statusText + ']');
+      } else {
+        return res.json();
+      }
     });
+
+    // domain
+    var keyUrl = url.parse(keyId);
+
+    // レコード作成
+    return [
+        {
+        'username': json.preferredUsername,
+        'domain': keyUrl.host,
+        'private_key': '',
+        'public_key': (json.publicKey)?json.publicKey.publicKeyPem:'',
+
+        'display_name': (json.name)?json.name:'',
+        'note': (json.summary)?json.summary:'',
+        'uri': json.id,
+        'url': keyId,
+        'avatar_remote_url': (json.icon)?json.icon.url:'',
+        'header_remote_url': (json.image)?json.image.url:'',
+
+        'inbox_url': json.inbox,
+        'outbox_url': json.outbox,
+        'shared_inbox_url': (json.endpoints)?json.endpoints.sharedInbox:'',
+        'shared_outbox_url': '',
+        'followers_url': json.followers,
+        'following_url': json.following,
+
+        'actor_type': json.type,
+        'discoverable': true
+      }
+    ];
 };

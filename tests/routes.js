@@ -4,8 +4,6 @@ var expect = require("chai").expect;
 var assert = require("chai").assert;
 
 var Actor = require('../activitypub/actor');
-
-var keyPair = require('../keypair/relay_keypair.json');
 var config = require('../settings');
 
 // 
