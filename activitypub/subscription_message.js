@@ -49,9 +49,6 @@ subscription_message.prototype.sendActivity = function(inboxUrl, activity) {
         if (res.ok) {
           return res.json();
         } else {
-          res.json().then(function(json) {
-            console.log(json);
-          })
           throw new Error(res.status + ':' + res.statusText);
         }
       });
