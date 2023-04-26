@@ -68,7 +68,7 @@ var accountRequest = async function(keyId) {
   var json = await fetch(keyId, options)
     .then(function(res) {
       if (!res.ok) {
-        throw new Error('Response fail.[' + res.statusText + ']');
+        throw new Error('Response fail.[' + res.status + ']');
       } else {
         return res.json();
       }

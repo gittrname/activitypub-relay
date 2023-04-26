@@ -7,24 +7,20 @@ var database = require('../database');
 var influx = require('../influx');
 var config = require('../settings');
 const settings = require('../settings');
-const e = require('express');
 
 //
 var subscriptionMessage = new SubscriptionMessage(config.relay.actor, config.relay.privateKey);
-var activity = new Activity(config.relay);
 
 //
 //
 module.exports = async function(job, done) {
-      
+
   // Signatation Params
   var client = job.data.client;
   var signParams = Signature.parseSignParams(client);
 
   // 転送Activity
   var forwardActivity = Activity.parse(client.body);
-  // ブーストActivity
-  var boastActivity = activity.announce(client.body);
 
   console.log('start forward queue process. keyId='+signParams['keyId']);
 
@@ -59,7 +55,7 @@ module.exports = async function(job, done) {
         .where({'domain': account['domain']})
         .where('status', 0)
         .then(function(rows) {
-          var promises = []; 
+          var promises = [];
           for(idx in rows) {
             // 配送先状態を変更する
             promises.push(database('relays')
@@ -95,7 +91,7 @@ module.exports = async function(job, done) {
         .where('relays.status', 1)
         .then(function(rows) {
           // 配送Promiseリスト作成
-          var promises = []; 
+          var promises = [];
           for(idx in rows) {
             promises.push(subscriptionMessage
               .sendActivity(rows[idx]['inbox_url'], forwardActivity)
@@ -124,7 +120,7 @@ module.exports = async function(job, done) {
  * 配信成功処理
  */
 const forwardSuccessFunc = function(res, activityId, account) {
-  
+
   console.log('Forward Success.'
   +' form='+account['uri']+' to='+res.url);
 
@@ -156,7 +152,7 @@ const forwardFailFunc = function(err, activityId, account) {
       .innerJoin('accounts', 'relays.account_id', 'accounts.id')
       .where({'accounts.inbox_url': account['inbox_url']})
       .then(function(relayIds) {
-        var promises = []; 
+        var promises = [];
         for(i in relayIds) {
             promises.push(database('relays')
               .where('id', relayIds[i]['id']).whereNot('status', 0)
