@@ -2,7 +2,7 @@ FROM node:18
 
 # install gcc
 RUN apt-get update \
-  && apt-get -y install g++ python \
+  && apt-get -y install g++ python3 \
   && rm /var/lib/apt/lists/* -fR
 
 # Set Env
