@@ -93,13 +93,14 @@ module.exports = async function(job, done) {
           // 配送Promiseリスト作成
           var promises = [];
           for(idx in rows) {
+            const target = rows[idx]
             promises.push(subscriptionMessage
-              .sendActivity(rows[idx]['inbox_url'], forwardActivity)
+              .sendActivity(target['inbox_url'], forwardActivity)
               .then(function(res) {
-                return forwardSuccessFunc(res, forwardActivity.id, account);
+                return forwardSuccessFunc(res, forwardActivity.id, account, target);
               })
               .catch(function(err) {
-                return forwardFailFunc(err, forwardActivity.id, account);
+                return forwardFailFunc(err, forwardActivity.id, account, target);
               })
             );
           }
@@ -119,16 +120,16 @@ module.exports = async function(job, done) {
 /**
  * 配信成功処理
  */
-const forwardSuccessFunc = function(res, activityId, account) {
+const forwardSuccessFunc = function(res, activityId, from, to) {
 
   console.log('Forward Success.'
-  +' form='+account['uri']+' to='+res.url);
+  +' from='+from['uri']+' to='+to['inbox_url']);
 
   // 配信成功を結果ログに記録
   return influx.writePoints([
     {
       measurement: 'forward',
-      tags: {inbox_url: res.url},
+      tags: {inbox_url: to['inbox_url']},
       fields: {id: activityId, result: true}
     }
   ])
@@ -140,17 +141,17 @@ const forwardSuccessFunc = function(res, activityId, account) {
 /**
  * 配信失敗処理
  */
-const forwardFailFunc = function(err, activityId, account) {
+const forwardFailFunc = function(err, activityId, from, to) {
 
   console.log('Forward Fail. ['+err.message+']'
-  +' form='+account['uri']+' to='+err.url);
+  +' from='+from['uri']+' to='+to['inbox_url']);
 
   // 配送ステータス更新処理
   const forwardStatusUpdate = function() {
     return database('relays')
       .select('relays.id')
       .innerJoin('accounts', 'relays.account_id', 'accounts.id')
-      .where({'accounts.inbox_url': account['inbox_url']})
+      .where({'accounts.inbox_url': to['inbox_url']})
       .then(function(relayIds) {
         var promises = [];
         for(i in relayIds) {
