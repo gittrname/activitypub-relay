@@ -24,7 +24,11 @@ module.exports = async function(keyId) {
             console.log('no found. ['+keyId+']');
 
             // Httpリクエストで取得する
-            return accountRequest(keyId);
+            try {
+              return accountRequest(keyId);
+            } catch (err) {
+              throw err;
+            }
           } else {
             console.log('found. ['+keyId+']');
 
