@@ -47,7 +47,7 @@ subscription_message.prototype.sendActivity = function(inboxUrl, activity) {
     return fetch(inboxUrl.href, options)
       .then(function(res) {
         if (res.ok) {
-          return res.json();
+          return res;
         } else {
           throw new Error(res.status + ':' + res.statusText);
         }
