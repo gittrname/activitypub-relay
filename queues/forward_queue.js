@@ -3,6 +3,7 @@ var SubscriptionMessage = require('../activitypub/subscription_message');
 var Signature = require('../utils/signature_utilily');
 
 var accountCache = require('./account_cache');
+var filter = require('../filter');
 var database = require('../database');
 var influx = require('../influx');
 var settings = require('../settings');
@@ -30,6 +31,12 @@ module.exports = async function(job, done) {
   } catch (e) {
     console.log(e.message);
     return done(e);
+  }
+
+  // フィルターチェック
+  if (filter(account, forwardActivity)) {
+    console.log('Filtering activity.');
+    return done();
   }
 
   return await new Promise(function(resolve, reject) {
