@@ -1,7 +1,7 @@
 const fs = require("fs");
 const readline = require("readline")
 
-module.exports = function(account, activity) {
+module.exports = async function(account, activity) {
     
     /**
      * ドメインフィルター
@@ -39,8 +39,8 @@ module.exports = function(account, activity) {
         }
 
         // タグチェック
-        for (var tag in activity.object.tag) {
-            if (tag.name == hashTag) {
+        for (var idx in activity.object.tag) {
+            if (activity.object.tag[idx].name == hashTag) {
                 return true;
             }
         }
@@ -56,7 +56,7 @@ module.exports = function(account, activity) {
 
 
     // １行ずつチェック
-    reader.on("line", (line) => {
+    for await (const line of reader) {
         if (line.indexOf('#') == 0) {
             // タグ
             return tagFilter(activity, line);
@@ -67,6 +67,5 @@ module.exports = function(account, activity) {
             // ドメイン
             return domainFilter(account, line);
         }
-    });
-    return false;
+    };
 }

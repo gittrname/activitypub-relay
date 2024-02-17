@@ -34,7 +34,8 @@ module.exports = async function(job, done) {
   }
 
   // フィルターチェック
-  if (filter(account, forwardActivity)) {
+  const fintering = await filter(account, forwardActivity);
+  if (fintering) {
     console.log('Filtering activity.');
     return done();
   }
