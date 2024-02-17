@@ -39,8 +39,8 @@ module.exports = {
       password: (process.env.DB_PASS) ? process.env.DB_PASS : "postgres"
     },
     pool: {
-      min: 2,
-      max: 10
+      min: 1,
+      max: 5
     },
     migrations: {
       directory:'./migrations',
