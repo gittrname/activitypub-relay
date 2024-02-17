@@ -5,11 +5,10 @@ var Signature = require('../utils/signature_utilily');
 var accountCache = require('./account_cache');
 var database = require('../database');
 var influx = require('../influx');
-var config = require('../settings');
-const settings = require('../settings');
+var settings = require('../settings');
 
 //
-var subscriptionMessage = new SubscriptionMessage(config.relay.actor, config.relay.privateKey);
+var subscriptionMessage = new SubscriptionMessage(settings.relay.actor, settings.relay.privateKey);
 
 //
 //
