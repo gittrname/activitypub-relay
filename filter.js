@@ -9,8 +9,12 @@ module.exports = async function(account, activity) {
      * @param {*} domain 
      */
     const domainFilter = function(account, domain) {
-
-        return account.domain == domain;
+        if (account.domain == domain) {
+            console.log('match fintering domain.[' + domain + ']');
+            return true;
+        } else {
+            return false;
+        }
     }
     
     /**
@@ -22,8 +26,13 @@ module.exports = async function(account, activity) {
 
         const [name, domain] = userdomain.split('@');
 
-        return account.domain == domain
-            && account.username == name;
+        if (account.domain == domain
+            && account.username == name) {
+            console.log('match fintering userdomain.[' + userdomain + ']');
+            return true;
+        } else {
+            return false;
+        }
     }
     
     /**
@@ -41,6 +50,7 @@ module.exports = async function(account, activity) {
         // タグチェック
         for (var idx in activity.object.tag) {
             if (activity.object.tag[idx].name == hashTag) {
+                console.log('match fintering hashTag.[' + hashTag + ']');
                 return true;
             }
         }
@@ -54,18 +64,20 @@ module.exports = async function(account, activity) {
     });
     const reader = readline.createInterface({ input: stream });
 
-
     // １行ずつチェック
+    var result = false;
     for await (const line of reader) {
         if (line.indexOf('#') == 0) {
             // タグ
-            return tagFilter(activity, line);
+            result = result || tagFilter(activity, line);
         } else if (line.indexOf('@') > 0) {
             // アカウント
-            return accountFilter(account, line);
+            result = result || accountFilter(account, line);
         } else {
             // ドメイン
-            return domainFilter(account, line);
+            result = result || domainFilter(account, line);
         }
     };
+
+    return result
 }

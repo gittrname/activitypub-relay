@@ -37,7 +37,7 @@ module.exports = async function(job, done) {
   const fintering = await filter(account, forwardActivity);
   if (fintering) {
     console.log('Filtering activity.');
-    return done();
+    return done(new Error('Filtering activity.'));
   }
 
   return await new Promise(function(resolve, reject) {
