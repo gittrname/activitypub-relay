@@ -47,9 +47,9 @@ influx.getDatabaseNames()
   .then(function(names) {
     if (!names.includes(config.influx.database)) {
       influx.createDatabase(config.influx.database);
-      influx.createRetentionPolicy('90d', {
+      influx.createRetentionPolicy('7d', {
         database: config.influx.database,
-        duration: '90d',
+        duration: '7d',
         replication: 1,
         isDefault: true
       });
