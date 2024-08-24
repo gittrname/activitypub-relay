@@ -39,89 +39,66 @@ module.exports = async function(job, done) {
     console.log('Filtering activity.');
     return done(new Error('Filtering activity.'));
   }
+  
+  // Signatureの正当性チェック
+  if (!Signature.verifyRequest(account['public_key'], client)) {
 
-  return await new Promise(function(resolve, reject) {
+    // 拒否応答
+    subscriptionMessage.sendActivity(
+      account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
 
-    // Signatureの正当性チェック
-    if (!Signature.verifyRequest(account['public_key'], client)) {
+      console.log('Invalid signature.');
+      return done(new Error('Invalid signature. keyId='+signParams['keyId']));
+  }
 
-      // 拒否応答
-      subscriptionMessage.sendActivity(
-        account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
-
-      return reject(new Error('Invalid signature. keyId='+signParams['keyId']));
-    } else {
-
-      return resolve();
-    }
-  })
-  .then(function(res) {
-
-    // 配送復帰処理
-    return database('relays')
+  // 配送復帰処理
+  try {
+    var domains = await database('relays')
         .where({'domain': account['domain']})
-        .where('status', 0)
-        .then(function(rows) {
-          var promises = [];
-          for(idx in rows) {
-            // 配送先状態を変更する
-            promises.push(database('relays')
-                .where('id', rows[idx]['id'])
-                .update({'status': 1})
-                .catch(function(err) {
-                  console.log(err.message);
-                })
-              );
-          }
+        .where('status', 0);
 
-          return Promise.all(promises);
-        });
-  })
-  .then(function(res) {
-    // 配送処理
-    return database('relays')
-        .select([
-          'relays.id',
-          'relays.account_id',
-          'relays.domain',
-          'relays.created_at',
-          'relays.updated_at',
-          'relays.status',
-          'accounts.username',
-          'accounts.uri',
-          'accounts.url',
-          'accounts.inbox_url',
-          'accounts.shared_inbox_url',
-        ])
-        .innerJoin('accounts', 'relays.account_id', 'accounts.id')
-        .whereNot({'accounts.domain': account['domain']})
-        .where('relays.status', 1)
-        .then(function(rows) {
-          // 配送Promiseリスト作成
-          var promises = [];
-          for(idx in rows) {
-            const target = rows[idx]
-            promises.push(subscriptionMessage
-              .sendActivity(target['inbox_url'], forwardActivity)
-              .then(function(res) {
-                return forwardSuccessFunc(res, forwardActivity.id, account, target);
-              })
-              .catch(function(err) {
-                return forwardFailFunc(err, forwardActivity.id, account, target);
-              })
-            );
-          }
+    for(idx in domains) {
+      // 配送先状態を変更する
+      await database('relays')
+          .where('id', domains[idx]['id'])
+          .update({'status': 1})
+    }
+  } catch(err) {
+    console.log(err.message);
+  }
 
-          return Promise.all(promises);
-        });
-  })
-  .catch(function(err) {
-    console.log(err);
-    done(err);
-  })
-  .finally(function() {
-    done();
-  });
+  // 配送処理
+  var domains = await database('relays')
+    .select([
+      'relays.id',
+      'relays.account_id',
+      'relays.domain',
+      'relays.created_at',
+      'relays.updated_at',
+      'relays.status',
+      'accounts.username',
+      'accounts.uri',
+      'accounts.url',
+      'accounts.inbox_url',
+      'accounts.shared_inbox_url',
+    ])
+    .innerJoin('accounts', 'relays.account_id', 'accounts.id')
+    .whereNot({'accounts.domain': account['domain']})
+    .where('relays.status', 1);
+  
+  for(idx in domains) {
+    const target = domains[idx]
+    subscriptionMessage
+      .sendActivity(target['inbox_url'], forwardActivity)
+      .then(function(res) {
+        forwardSuccessFunc(res, forwardActivity.id, account, target);
+      })
+      .catch(function(err) {
+        forwardFailFunc(err, forwardActivity.id, account, target);
+      });
+  }
+  
+  done();
 };
 
 /**
