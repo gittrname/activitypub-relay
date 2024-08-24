@@ -22,8 +22,10 @@ serverAdapter.setBasePath('/admin/queues');
 var passport = require('passport');
 function isAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
+    console.log('logined')
     return next();
   } else {
+    console.log('no login')
     res.redirect("/admin/login");
   }
 }
@@ -42,8 +44,9 @@ router.post("/login", passport.authenticate("local",{
 //
 // ログアウト
 router.get("/logout", function(req, res, next) {
-  req.logout();
-  res.redirect("/admin/login")
+  req.session.destroy(function() {
+    res.redirect("/admin/login");
+  })
 });
 
 //

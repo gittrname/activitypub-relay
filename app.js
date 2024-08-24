@@ -1,6 +1,8 @@
 var createError = require('http-errors');
 var express = require('express');
 var session = require('express-session');
+var RedisStore = require('connect-redis')(session);
+var redis = require('redis');
 var path = require('path');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
@@ -31,7 +33,16 @@ app.use(bodyParser.json({
   }
 }));
 // セッション
-app.use(session({secret: 'relay'}));
+var redisClient = redis.createClient(config.redis);
+app.use(session({
+  secret: 'relay',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 10 * 60 * 1000
+  },
+  store: new RedisStore({client: redisClient}),
+}));
 // 認証機能
 passport.serializeUser(function(user, done) {
   done(null, user);
@@ -95,6 +106,7 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
+  console.log(err);
   console.log(err.message+". path:"+req.path);
 
   res.status(err.status || 500);
