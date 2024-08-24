@@ -21,28 +21,9 @@ const influx = new Influx.InfluxDB({
         'inbox_url'
       ]
     },
-    {
-      measurement: 'boost',
-      fields: {
-        id: Influx.FieldType.STRING,
-        result: Influx.FieldType.BOOLEAN
-      },
-      tags: [
-        'inbox_url'
-      ]
-    },
-    {
-      measurement: 'hashtag',
-      fields: {
-        id: Influx.FieldType.STRING,
-      },
-      tags: [
-        'type',
-        'name'
-      ]
-    }
   ]
 });
+// 初期データベース作成
 influx.getDatabaseNames()
   .then(function(names) {
     if (!names.includes(config.influx.database)) {
