@@ -1,5 +1,5 @@
 /**
- * 接続不能ドメインの購読を解除する
+ * 接続再開ドメインの購読を再開する
  */
 var path = require('path');
 var program = require('commander');
@@ -23,7 +23,7 @@ return main();
 
 async function main() {
     var domains = await database('relays')
-        .where('relays.status', 1);
+        .where('relays.status', 0);
     
     for(idx in domains) {
         const row = domains[idx]
@@ -39,12 +39,12 @@ async function main() {
             // 配送停止
             await database('relays')
                 .where('id', row['id'])
-                .update({'status': 0})
+                .update({'status': 1})
                 .catch(function(err) {
                     console.log(err.message);
                 });
         }
     }
-    console.log('domain connect check end.');
+    console.log('domain reconnect check end.');
     exit();
 }
