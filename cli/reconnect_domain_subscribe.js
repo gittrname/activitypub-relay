@@ -33,16 +33,16 @@ async function main() {
         try {
             await connect(domain);
             console.log('  connect success.');
-        } catch (err) {
-            console.log(err);
-            console.log('  connect fail.');
-            // 配送停止
+            // 配送再開
             await database('relays')
                 .where('id', row['id'])
                 .update({'status': 1})
                 .catch(function(err) {
                     console.log(err.message);
                 });
+        } catch (err) {
+            console.log(err);
+            console.log('  connect fail.');
         }
     }
     console.log('domain reconnect check end.');
