@@ -30,56 +30,50 @@ module.exports = async function(job, done) {
     console.log(e.message);
     return done(e);
   }
+  
+  // Signatureの正当性チェック
+  if (!Signature.verifyRequest(account['public_key'], client)) {
 
-  return await new Promise(function(resolve, reject) {
-
-    // // Signatureの正当性チェック
-    // if (!Signature.verifyRequest(account['public_key'], client)) {
-
-    //   // 拒否応答
-    //   subscriptionMessage.sendActivity(
-    //     account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
-
-    //   return reject(new Error('Invalid signature. keyId='+signParams['keyId']));
-    // } else {
-
-    //   return resolve();
-    // }
-    return resolve();
-  })
-  .then(function(res) {
-
-      // すでにRelay登録されていないか確認
-      return database('relays')
-        .select()
-        .where({
-          'account_id': account['id'],
-          'domain': account['domain']
-        })
-        .then(function(rows) {
-
-          if (rows.length <= 0) {
-            return database('relays')
-              .insert({
-                'account_id': account['id'],
-                'domain': account['domain'],
-                'status': 1
-              });
-          }
-        });
-    })
-    .then(function(res) {
-
-      // 承認応答
-      console.log('Send Accept Activity. target='+account['shared_inbox_url']);
-      return subscriptionMessage.sendActivity(
-        account['shared_inbox_url'], activity.accept(client.body));
-    })
-    .catch(function(err) {
-      console.log(err);
-      done(err);
-    })
-    .finally(function() {
-      done();
+    // 拒否応答
+    try {
+      await subscriptionMessage.sendActivity(
+        account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
+    } catch (e) {
+      console.log(e.message);
+      return done(e);
+    }
+  }
+  
+  // すでにRelay登録されていないか確認
+  const rows = await database('relays')
+    .select()
+    .where({
+      'account_id': account['id'],
+      'domain': account['domain']
     });
+  if (rows.length <= 0) { // 未登録なら登録
+    try {
+      await database('relays')
+        .insert({
+          'account_id': account['id'],
+          'domain': account['domain'],
+          'status': 1
+        });
+    } catch(e) {
+      console.log(e.message);
+      return done(e);
+    }
+  }
+
+  // 承認応答
+  console.log('Send Accept Activity. target='+account['shared_inbox_url']);
+  try {
+    await subscriptionMessage.sendActivity(
+      account['shared_inbox_url'], activity.accept(client.body));
+  } catch(e) {
+    console.log(e.message);
+    return done(e);
+  }
+  
+  return done();
 };

@@ -15,7 +15,7 @@ var subscription_message = function(actor, privateKey) {
   this.privateKey = privateKey;
 };
 
-subscription_message.prototype.sendActivity = function(inboxUrl, activity) {
+subscription_message.prototype.sendActivity = async function(inboxUrl, activity) {
 
   // host
   var inboxUrl = url.parse(inboxUrl);
@@ -44,7 +44,7 @@ subscription_message.prototype.sendActivity = function(inboxUrl, activity) {
       body: rawBody
     });
 
-    return fetch(inboxUrl.href, options)
+    return await fetch(inboxUrl.href, options)
       .then(function(res) {
         if (res.ok) {
           return res;

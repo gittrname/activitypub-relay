@@ -10,9 +10,7 @@ const { addQueue, removeQueue, setQueues, replaceQueues } = createBullBoard({
   queues: [
     new BullAdapter(worker.followQueue),
     new BullAdapter(worker.unfollowQueue),
-    new BullAdapter(worker.forwardQueue),
-    new BullAdapter(worker.remoteFollowQueue),
-    new BullAdapter(worker.remoteUnFollowQueue),
+    new BullAdapter(worker.forwardQueue)
   ],
   serverAdapter: serverAdapter,
 });

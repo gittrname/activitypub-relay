@@ -18,11 +18,5 @@ router.get('/servicer', function (req, res, next) {
   res.render("servicer");
 });
 
-//
-// Userページ
-router.get('/user', function (req, res, next) {
-  res.render("user");
-});
-
 
 module.exports = router;

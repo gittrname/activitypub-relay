@@ -31,103 +31,91 @@ module.exports = async function(job, done) {
     console.log(e.message);
     return done(e);
   }
+  
+  // Signatureの正当性チェック
+  if (!Signature.verifyRequest(account['public_key'], client)) {
 
-  return await new Promise(function(resolve, reject) {
+    // 拒否応答
+    try {
+      await subscriptionMessage.sendActivity(
+        account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
+    } catch (e) {
+      console.log(e.message);
+      return done(e);
+    }
+  }
 
-    // // Signatureの正当性チェック
-    // if (!Signature.verifyRequest(account['public_key'], client)) {
-
-    //   // 拒否応答
-    //   subscriptionMessage.sendActivity(
-    //     account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
-
-    //   return reject(new Error('Invalid signature. keyId='+signParams['keyId']));
-    // } else {
-
-    //   return resolve();
-    // }
-    return resolve();
-  })
-  .then(function(res) {
-
-    // すでにRelay登録されていないか確認
-    return database('relays')
-      .select('id')
-      .where({
-        account_id: account['id'],
-        domain: account['domain']
-      })
-      .then(function(rows) {
-
-        if (rows.length <= 0) {
-          console.log('This relay is not follow. targetId='+signParams['keyId']);
-
-          return Promise.resolve(rows);
-        } else {
-          console.log('This relay is remove follow. targetId='+signParams['keyId']);
-
-          // id リスト
-          idList = [];
-          for(var i in rows) {
-            idList.push(rows[i]['id']);
-          }
-
-          //
-          // DB削除
-          return database('relays')
-            .delete()
-            .whereIn('id', idList);
-        }
-      });
-  })
-  .then(function(res) {
-
-    // すでにFollowers登録されていないか確認
-    return database('followers')
-      .select('id')
-      .where({
-        account_id: account['id'],
-        domain: account['domain']
-      })
-      .then(function(rows) {
-
-        if (rows.length <= 0) {
-          console.log('This relay is not follow. targetId='+signParams['keyId']);
-
-          return Promise.resolve(rows);
-        } else {
-          console.log('This relay is remove follow. targetId='+signParams['keyId']);
-
-          // id リスト
-          idList = [];
-          for(var i in rows) {
-            idList.push(rows[i]['id']);
-          }
-
-          //
-          cache.del(signParams['keyId']);
-
-          //
-          // DB削除
-          return database('followers')
-            .delete()
-            .whereIn('id', idList);
-        }
-      });
-    })
-    .then(function(res) {
-
-      //
-      // 承認リクエスト送付
-      console.log('Send Accept Activity. targetId='+account['shared_inbox_url']);
-      return subscriptionMessage.sendActivity(
-         account['shared_inbox_url'], activity.accept(client.body));
-    })
-    .catch(function(err) {
-      console.log(err);
-      done(err);
-    })
-    .finally(function() {
-      done();
+  // すでにRelay登録されていないか確認
+  const relayRows = await database('relays')
+    .select('id')
+    .where({
+      account_id: account['id'],
+      domain: account['domain']
     });
+  if (relayRows.length > 0) {  // 削除する
+    console.log('This relay is remove follow. targetId='+signParams['keyId']);
+
+    // id リスト
+    idList = [];
+    for(var i in relayRows) {
+      idList.push(relayRows[i]['id']);
+    }
+
+    //
+    // DB削除
+    await database('relays')
+      .delete()
+      .whereIn('id', idList)
+      .catch(function(e) {
+        console.log(e);
+        //　削除できなくてもアンフォロー処理は続ける
+      });
+  } else {
+    console.log('This relay is not follow. targetId='+signParams['keyId']);
+  }
+
+  // すでにFollowers登録されていないか確認
+  const followerRows = await database('followers')
+    .select('id')
+    .where({
+      account_id: account['id'],
+      domain: account['domain']
+    });
+  if (followerRows.length > 0) {
+    console.log('This relay is remove follow. targetId='+signParams['keyId']);
+
+    // id リスト
+    idList = [];
+    for(var i in followerRows) {
+      idList.push(followerRows[i]['id']);
+    }
+
+    //
+    cache.del(signParams['keyId']);
+
+    //
+    // DB削除
+    await database('followers')
+      .delete()
+      .whereIn('id', idList)
+      .catch(function(e) {
+        console.log(e);
+        //　削除できなくてもアンフォロー処理は続ける
+      });
+  } else {
+    console.log('This relay is not follow. targetId='+signParams['keyId']);
+  }
+
+  //
+  // 承認リクエスト送付
+  console.log('Send Accept Activity. targetId='+account['shared_inbox_url']);
+  try {
+    await subscriptionMessage.sendActivity(
+      account['shared_inbox_url'], activity.accept(client.body));
+  } catch(e) {
+    console.log(e.message);
+    return done(e);
+  }
+
+  return done();
 };

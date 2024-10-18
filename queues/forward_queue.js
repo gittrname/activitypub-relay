@@ -42,8 +42,8 @@ module.exports = async function(job, done) {
   
   // Signatureの正当性チェック
   if (!Signature.verifyRequest(account['public_key'], client)) {
-
     // 拒否応答
+    activity = new Activity(settings.relay);
     subscriptionMessage.sendActivity(
       account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
 
@@ -86,106 +86,42 @@ module.exports = async function(job, done) {
     .whereNot({'accounts.domain': account['domain']})
     .where('relays.status', 1);
   
+  
+  const reusltList = [];
   for(idx in domains) {
-    const target = domains[idx]
-    subscriptionMessage
-      .sendActivity(target['inbox_url'], forwardActivity)
-      .then(function(res) {
-        forwardSuccessFunc(res, forwardActivity.id, account, target);
+    const target = domains[idx];
+    try {
+      await subscriptionMessage
+        .sendActivity(target['inbox_url'], forwardActivity);
+      
+      // 結果を記録
+      reusltList.push({
+        measurement: 'forward',
+        tags: {inbox_url: target['inbox_url']},
+        fields: {id: forwardActivity.id, result: true}
       })
-      .catch(function(err) {
-        forwardFailFunc(err, forwardActivity.id, account, target);
-      });
+
+      console.log('Forward Success.'
+        +' from='+account['uri']+' to='+target['inbox_url']);
+    } catch (err) {
+      console.log('Forward Fail. ['+err.message+']'
+        +' from='+account['uri']+' to='+target['inbox_url']);
+      
+      // 結果を記録
+      reusltList.push({
+        measurement: 'forward',
+        tags: {inbox_url: err.url},
+        fields: {id: forwardActivity.id, result: false}
+      })
+    }
+  }
+
+  // 配信結果を集計DBに記録
+  try {
+    await influx.writePoints(reusltList);
+  } catch(e) {
+    console.log(err.message);
   }
   
   done();
-};
-
-/**
- * 配信成功処理
- */
-const forwardSuccessFunc = function(res, activityId, from, to) {
-
-  console.log('Forward Success.'
-  +' from='+from['uri']+' to='+to['inbox_url']);
-
-  // 配信成功を結果ログに記録
-  return influx.writePoints([
-    {
-      measurement: 'forward',
-      tags: {inbox_url: to['inbox_url']},
-      fields: {id: activityId, result: true}
-    }
-  ])
-  .catch(function(e) {
-    console.log(e.message);
-  });
-};
-
-/**
- * 配信失敗処理
- */
-const forwardFailFunc = function(err, activityId, from, to) {
-
-  console.log('Forward Fail. ['+err.message+']'
-  +' from='+from['uri']+' to='+to['inbox_url']);
-
-  // 配送ステータス更新処理
-  const forwardStatusUpdate = function() {
-    return database('relays')
-      .select('relays.id')
-      .innerJoin('accounts', 'relays.account_id', 'accounts.id')
-      .where({'accounts.inbox_url': to['inbox_url']})
-      .then(function(relayIds) {
-        var promises = [];
-        for(i in relayIds) {
-            promises.push(database('relays')
-              .where('id', relayIds[i]['id']).whereNot('status', 0)
-              .update({'status': 0}).catch(function(e) {
-                console.log(e.message);
-              })
-            );
-          return Promise.all(promises);
-        }
-      });
-  };
-
-  // 配信失敗を結果ログに記録
-  return influx.writePoints([
-    {
-      measurement: 'forward',
-      tags: {inbox_url: err.url},
-      fields: {id: activityId, result: false}
-    }
-  ])
-  .then(function(res) {
-
-    // 配送不能ドメインのステータスを変更
-    if (err.response == undefined){
-      //console.log('ERROR CODE: ' + err.code);
-      if (err.code == 'ENOTFOUND') {
-        // ドメイン逆引きエラー
-        if (settings.queue.auto_unforward) { return forwardStatusUpdate() };
-      } else if (err.code == 'ERR_BAD_RESPONSE') {
-        // レスポンス不正
-        if (settings.queue.auto_unforward) { return forwardStatusUpdate() };
-      } else if (err.code == 'ETIMEDOUT') {
-        // 接続タイムアウト
-        if (settings.queue.auto_unforward) { return forwardStatusUpdate() };
-      } else {
-        return res;
-      }
-    } else if (err.response.status == 410) {
-      // 410エラー
-      if (settings.queue.auto_unforward) { return forwardStatusUpdate() };
-    } else if (err.response.status > 499) {
-      // 500番台エラー
-      if (settings.queue.auto_unforward) { return forwardStatusUpdate() };
-    } else {
-      return res;
-    }
-  })
-  .catch(function(e) {
-    console.log(e.message);
-  });
 };
