@@ -88,6 +88,7 @@ module.exports = async function(job, done) {
   
   
   const reusltList = [];
+  const undeliveryList = [];
   for(idx in domains) {
     const target = domains[idx];
     try {
@@ -107,6 +108,11 @@ module.exports = async function(job, done) {
       console.log('Forward Fail. ['+err.message+']'
         +' from='+account['uri']+' to='+target['inbox_url']);
       
+      // 401 Goneの場合は配送停止対象に記録
+      if (err.message=="Gone") {
+        undeliveryList.push(target);
+      }
+      
       // 結果を記録
       reusltList.push({
         measurement: 'forward',
@@ -121,6 +127,26 @@ module.exports = async function(job, done) {
     await influx.writePoints(reusltList);
   } catch(e) {
     console.log(err.message);
+  }
+
+  // 配信停止処理
+  for (idx in undeliveryList) {
+    try {
+      // 所属する配送先取得
+      const relayIds = await database('relays')
+        .select('relays.id')
+        .innerJoin('accounts', 'relays.account_id', 'accounts.id')
+        .where({'accounts.inbox_url': undeliveryList[idx]["inbox_url"]});
+
+      // 配送停止処理
+      for(i in relayIds) {
+        await database('relays')
+          .where('id', relayIds[i]['id'])
+          .update({'status': 0});
+      }
+    } catch (e) {
+      console.log(e.message);
+    }
   }
   
   done();

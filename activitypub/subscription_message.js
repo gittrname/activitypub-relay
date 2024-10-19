@@ -49,7 +49,7 @@ subscription_message.prototype.sendActivity = async function(inboxUrl, activity)
         if (res.ok) {
           return res;
         } else {
-          throw new Error(res.status + ':' + res.statusText);
+          throw new Error((res.statusText)?res.statusText:"");
         }
       });
 };
