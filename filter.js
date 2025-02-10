@@ -57,6 +57,28 @@ module.exports = async function(account, activity) {
         return false;
     }
 
+    // 
+    const textFilter = function(activity, pattern) {
+
+        // bodyなし
+        if (!activity.object.content) {
+            return false;
+        }
+
+        // reg
+        var reg = pattern.substr(1, pattern.length-2);
+        //body
+        var body = activity.object.content;
+
+        // チェック
+        if (body.match(reg)) {
+            console.log('match fintering pattern.[' + pattern + ']');
+            return true;
+        }
+        return false;
+    }
+
+
     // ファイル読み込み
     const stream = fs.createReadStream('./block.txt', {
         encoding: 'utf8',
@@ -73,7 +95,10 @@ module.exports = async function(account, activity) {
         } else if (line.indexOf('@') > 0) {
             // アカウント
             result = result || accountFilter(account, line);
-        } else {
+        } else if (line.startsWith('/')) {
+            // text
+            result = result || textFilter(activity, line);
+        } else  {
             // ドメイン
             result = result || domainFilter(account, line);
         }

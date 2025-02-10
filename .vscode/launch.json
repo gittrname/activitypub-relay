@@ -13,8 +13,15 @@
             "runtimeArgs": [
               "--nolazy"
             ],
-            //"envFile": "${workspaceFolder}/.env.development"
-            "envFile": "${workspaceFolder}/.env.production"
+            "envFile": "${workspaceFolder}/.env.development"
+        },
+        {
+            "name": "CLI unconnect_domain_unsubscribe",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/cli/unconnect_domain_unsubscribe.js ",
+            "runtimeExecutable": null,
+            "envFile": "${workspaceFolder}/.env.development"
         }
     ]
 }

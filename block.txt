@@ -1,3 +1,4 @@
 domain
 account@domain
 #tag
+/Ez spam/
