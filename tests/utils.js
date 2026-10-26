@@ -1,6 +1,7 @@
 var assert = require("chai").assert;
 var crypto = require('crypto');
 
+var config = require('../settings');
 var Signature = require('../utils/signature_utilily');
 
 // 

@@ -49,7 +49,11 @@ module.exports = {
 
       switch(name) {
         case '(request-target)':
-          signeds.push('(request-target): '+req.method.toLowerCase()+' '+req.path);
+          var requestPath = req.path || '/';
+          if (requestPath.indexOf('/') !== 0) {
+            requestPath = '/' + requestPath;
+          }
+          signeds.push('(request-target): '+req.method.toLowerCase()+' '+requestPath);
           break;
         case 'digest':
           var dataDigest
@@ -91,24 +95,28 @@ module.exports = {
 
     var params = this.parseSignParams(req);
     var signed = this.signedStr(params['headers'], req);
-    //console.log(req);
-    //console.log(signed);
+    var algorithm = String(params['algorithm'] || 'rsa-sha256');
+    var normalized = algorithm.toUpperCase();
+    if (normalized.indexOf('RSA-') !== 0) {
+      normalized = 'RSA-' + normalized;
+    }
 
-    var verify = crypto.createVerify(params['algorithm'].toUpperCase());
+    var verify = crypto.createVerify(normalized);
     verify.update(signed);
-    
+
     return verify.verify(publicKey, params['signature'], 'base64');
   },
 
   //
   // sign request
   signRequest: function(keyId, privateKey, req, signHeaders=['(request-target)','host','date','digest']) {
+    var pem = privateKey && privateKey.indexOf('BEGIN') >= 0 ? privateKey : (require('../settings').relay.privateKey || privateKey);
 
     var signedStr = this.signedStr(signHeaders.join(' '), req);
 
     var sign = crypto.createSign('RSA-SHA256');
     sign.update(signedStr);
-    var signature = sign.sign(privateKey, 'base64');
+    var signature = sign.sign(pem, 'base64');
 
 
     var signatures = new Array();

@@ -13,7 +13,7 @@ var subscriptionMessage = new SubscriptionMessage(settings.relay.actor, settings
 
 //
 //
-module.exports = async function(job, done) {
+module.exports = async function(job) {
 
   // Signatation Params
   var client = job.data.client;
@@ -30,14 +30,14 @@ module.exports = async function(job, done) {
     account = await accountCache(signParams['keyId']);
   } catch (e) {
     console.log(e.message);
-    return done(e);
+    throw e;
   }
 
   // フィルターチェック
   const fintering = await filter(account, forwardActivity);
   if (fintering) {
     console.log('Filtering activity.');
-    return done(new Error('Filtering activity.'));
+    throw new Error('Filtering activity. keyId='+signParams['keyId']);
   }
   
   // Signatureの正当性チェック
@@ -48,7 +48,7 @@ module.exports = async function(job, done) {
       account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
 
       console.log('Invalid signature.');
-      return done(new Error('Invalid signature. keyId='+signParams['keyId']));
+      throw new Error('Invalid signature. keyId='+signParams['keyId']);
   }
 
   // 配送復帰処理
@@ -85,7 +85,7 @@ module.exports = async function(job, done) {
     .innerJoin('accounts', 'relays.account_id', 'accounts.id')
     .whereNot({'accounts.domain': account['domain']})
     .where('relays.status', 1);
-  
+  console.log('Forward target count: '+domains.length);
   
   const reusltList = [];
   const undeliveryList = [];
@@ -149,5 +149,5 @@ module.exports = async function(job, done) {
     }
   }
   
-  done();
+  return true;
 };

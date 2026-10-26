@@ -34,7 +34,7 @@ describe('subscription_message', function() {
     return subscriptionMessage
       .sendActivity('https://pub.example.com/inbox', activityObj)
       .then(function(res) {
-        assert.equal(202, res.statusCode);
+        assert.equal(202, res.status);
       })
   });
 });

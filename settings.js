@@ -1,24 +1,31 @@
-var Url = require('url');
+var dotenv = require('dotenv');
 
-var relayUrl = Url.parse((process.env.RELAY_URL) ? process.env.RELAY_URL : "https://127.0.0.1:3000");
+dotenv.config({
+  path: process.env.ENV_FILE || (process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development')
+});
+
+var relayUrl = new URL((process.env.RELAY_URL) ? process.env.RELAY_URL : "https://127.0.0.1:3000");
+var relayBase = relayUrl.href.endsWith('/') ? relayUrl.href.slice(0, -1) : relayUrl.href;
 
 module.exports = {
 
   // relay server setting
   relay: {
-    url: relayUrl.href.substring(0, relayUrl.href.length-1),
-    actor: relayUrl.href+'actor',
-    keyId: relayUrl.href+'actor#main-key',
+    url: relayBase,
+    actor: relayBase+'/actor',
+    keyId: relayBase+'/actor#main-key',
     account: 'acct:relay@'+relayUrl.host,
     privateKey: (process.env.PRIVATE_KEY) ? process.env.PRIVATE_KEY : "not private key.",
-    publicKey: (process.env.PUBLIC_KEY) ? process.env.PUBLIC_KEY : "not public key."
+    publicKey: (process.env.PUBLIC_KEY) ? process.env.PUBLIC_KEY : "not public key.",
+    private: (process.env.PRIVATE_KEY) ? process.env.PRIVATE_KEY : "not private key.",
+    public: (process.env.PUBLIC_KEY) ? process.env.PUBLIC_KEY : "not public key."
   },
 
   // redis
   redis: {
     host: (process.env.REDIS_HOST) ? process.env.REDIS_HOST : "127.0.0.1",
     port: (process.env.REDIS_PORT) ? Number(process.env.REDIS_PORT) : 6379,
-    password: ''
+    password: (process.env.REDIS_PASSWORD) ? process.env.REDIS_PASSWORD : undefined
   },
 
   // process queue

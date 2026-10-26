@@ -1,12 +1,11 @@
 var createError = require('http-errors');
 var express = require('express');
 var session = require('express-session');
-var RedisStore = require('connect-redis')(session);
-var redis = require('redis');
+var { RedisStore } = require('connect-redis');
+var { createClient } = require('redis');
 var path = require('path');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
-var url = require('url');
 var passport = require('passport');
 var formAuth = require('./authentication/form_authentication');
 
@@ -33,7 +32,27 @@ app.use(bodyParser.json({
   }
 }));
 // セッション
-var redisClient = redis.createClient(config.redis);
+var redisClient = null;
+if (process.env.NODE_ENV !== 'test') {
+  redisClient = createClient({
+    socket: {
+      host: config.redis.host,
+      port: config.redis.port
+    },
+    password: config.redis.password || undefined
+  });
+  redisClient.on('error', function(err) {
+    console.error('Redis error: ' + err);
+  });
+
+  if (typeof redisClient.connect === 'function') {
+    redisClient.connect().catch(function(err) {
+      console.error('Redis connection failed: ' + err.message);
+      process.exit(1);
+    });
+  }
+}
+
 app.use(session({
   secret: 'relay',
   resave: false,
@@ -41,7 +60,7 @@ app.use(session({
   cookie: {
     maxAge: 10 * 60 * 1000
   },
-  store: new RedisStore({client: redisClient}),
+  store: process.env.NODE_ENV === 'test' ? undefined : new RedisStore({ client: redisClient })
 }));
 // 認証機能
 passport.serializeUser(function(user, done) {
@@ -62,9 +81,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // (ローカル環境だとIPアドレスとなるため（暫定対応）)
 app.use(function(req, res, next) {
 
-  var relayUrl = url.parse(config.relay.url);
+  var relayUrl = new URL(config.relay.url);
   req.headers['host'] = relayUrl.host;
-  
+
   next();
 });
 
@@ -93,7 +112,9 @@ app.use('/', require('./routes/web_service'));
 // ui
 app.use('/ui', require('./routes/ui'));
 // admin
-app.use('/admin', require('./routes/admin'));
+if (process.env.NODE_ENV !== 'test') {
+  app.use('/admin', require('./routes/admin'));
+}
 
 // api
 app.use('/api', require('./routes/api'));

@@ -14,8 +14,7 @@ var activity = new Activity(config.relay);
 
 //
 //
-module.exports = async function(job, done) {
-
+module.exports = async function(job) {
   // Signatation Params
   var client = job.data.client;
   var signParams = Signature.parseSignParams(client);
@@ -28,22 +27,15 @@ module.exports = async function(job, done) {
     account = await accountCache(signParams['keyId']);
   } catch (e) {
     console.log(e.message);
-    return done(e);
+    throw e;
   }
-  
+
   // Signatureの正当性チェック
   if (!Signature.verifyRequest(account['public_key'], client)) {
-
-    // 拒否応答
-    try {
-      await subscriptionMessage.sendActivity(
-        account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
-    } catch (e) {
-      console.log(e.message);
-      return done(e);
-    }
+    console.log('invalid signature. skip follow request. [actor:'+signParams['keyId']+']');
+    return true;
   }
-  
+
   // すでにRelay登録されていないか確認
   const rows = await database('relays')
     .select()
@@ -61,7 +53,7 @@ module.exports = async function(job, done) {
         });
     } catch(e) {
       console.log(e.message);
-      return done(e);
+      throw e;
     }
   }
 
@@ -72,8 +64,8 @@ module.exports = async function(job, done) {
       account['shared_inbox_url'], activity.accept(client.body));
   } catch(e) {
     console.log(e.message);
-    return done(e);
+    throw e;
   }
-  
-  return done();
+
+  return true;
 };

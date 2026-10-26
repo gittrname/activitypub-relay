@@ -15,8 +15,7 @@ var activity = new Activity(config.relay);
 
 //
 //
-module.exports = async function(job, done) {
-
+module.exports = async function(job) {
   // Signatation Params
   var client = job.data.client;
   var signParams = Signature.parseSignParams(client);
@@ -29,19 +28,17 @@ module.exports = async function(job, done) {
     account = await accountCache(signParams['keyId']);
   } catch (e) {
     console.log(e.message);
-    return done(e);
+    throw e;
   }
-  
+
   // Signatureの正当性チェック
   if (!Signature.verifyRequest(account['public_key'], client)) {
-
-    // 拒否応答
     try {
       await subscriptionMessage.sendActivity(
         account['shared_inbox_url'], activity.reject(signParams['keyId'], client.body));
     } catch (e) {
       console.log(e.message);
-      return done(e);
+      throw e;
     }
   }
 
@@ -55,20 +52,16 @@ module.exports = async function(job, done) {
   if (relayRows.length > 0) {  // 削除する
     console.log('This relay is remove follow. targetId='+signParams['keyId']);
 
-    // id リスト
-    idList = [];
+    var idList = [];
     for(var i in relayRows) {
       idList.push(relayRows[i]['id']);
     }
 
-    //
-    // DB削除
     await database('relays')
       .delete()
       .whereIn('id', idList)
       .catch(function(e) {
         console.log(e);
-        //　削除できなくてもアンフォロー処理は続ける
       });
   } else {
     console.log('This relay is not follow. targetId='+signParams['keyId']);
@@ -84,29 +77,23 @@ module.exports = async function(job, done) {
   if (followerRows.length > 0) {
     console.log('This relay is remove follow. targetId='+signParams['keyId']);
 
-    // id リスト
-    idList = [];
+    var idList = [];
     for(var i in followerRows) {
       idList.push(followerRows[i]['id']);
     }
 
-    //
     cache.del(signParams['keyId']);
 
-    //
-    // DB削除
     await database('followers')
       .delete()
       .whereIn('id', idList)
       .catch(function(e) {
         console.log(e);
-        //　削除できなくてもアンフォロー処理は続ける
       });
   } else {
     console.log('This relay is not follow. targetId='+signParams['keyId']);
   }
 
-  //
   // 承認リクエスト送付
   console.log('Send Accept Activity. targetId='+account['shared_inbox_url']);
   try {
@@ -114,8 +101,8 @@ module.exports = async function(job, done) {
       account['shared_inbox_url'], activity.accept(client.body));
   } catch(e) {
     console.log(e.message);
-    return done(e);
+    throw e;
   }
 
-  return done();
+  return true;
 };

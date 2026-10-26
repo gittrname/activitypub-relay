@@ -1,53 +1,67 @@
-version: '3'
 services:
-
   relay:
     restart: always
     build: .
     ports:
       - "3000:3000"
-    env_file: .env.production
+    env_file:
+      - .env.production
     command: npm start
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      influxdb:
+        condition: service_started
     networks:
       - internal_network
       - external_network
 
   db:
     restart: always
-    image: postgres:9.6-alpine
-#    ports:
-#      - "5432:5432"
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - internal_network
-#      - external_network
-#    volumes:
-#      - ./postgres:/var/lib/postgresql/data
+      - external_network
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
 
   redis:
     restart: always
-    image: redis:4.0-alpine
-#    ports:
-#      - "6379:6379"
+    image: redis:7.4-alpine
+    ports:
+      - "6379:6379"
     networks:
       - internal_network
-#      - external_network
-#    volumes:
-#      - ./redis:/data
+      - external_network
+    volumes:
+      - ./redis:/data
 
   influxdb:
     restart: always
-    image: influxdb:1.7-alpine
-#    ports:
-#      - "8083:8083"
-#      - "8086:8086"
+    image: influxdb:1.13-alpine
+    user: "0:0"
+    ports:
+      - "8083:8083"
+      - "8086:8086"
     networks:
       - internal_network
-#      - external_network
-#    volumes:
-#      - ./influxdb:/var/lib/influxdb
+      - external_network
+    volumes:
+      - ./influxdb:/var/lib/influxdb
 
 networks:
   external_network:

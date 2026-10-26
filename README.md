@@ -34,15 +34,15 @@ PUBLIC_KEY="{public.pemの中身}"
 
 * Dockerコンテナのビルド
 ~~~
-$ docker-compose build relay
+$ docker compose build relay
 ~~~
 
 * DBマイグレーション実行(初回のみ)
 ~~~
-$ docker-compose run --rm relay npm run build:migrate
+$ docker compose run --rm relay npm run build:migrate
 ~~~
 
 * 起動
 ~~~
-$ docker-compose up -d
+$ docker compose up -d
 ~~~

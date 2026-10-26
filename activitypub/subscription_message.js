@@ -1,24 +1,20 @@
-var url = require('url');
 var fetch = require('node-fetch');
 
 const packageJson = require("../package.json")
 
 // 設定をロード
 var config = require('../settings');
-
 var Signature = require('../utils/signature_utilily');
 
-
 var subscription_message = function(actor, privateKey) {
-
   this.keyId = actor+'#main-key';
-  this.privateKey = privateKey;
+  this.privateKey = privateKey && privateKey.indexOf('BEGIN') >= 0 ? privateKey : config.relay.privateKey;
 };
 
 subscription_message.prototype.sendActivity = async function(inboxUrl, activity) {
 
   // host
-  var inboxUrl = url.parse(inboxUrl);
+  var inboxUrl = new URL(inboxUrl);
 
   // header,
   var headers = {
@@ -38,11 +34,12 @@ subscription_message.prototype.sendActivity = async function(inboxUrl, activity)
     this.privateKey,
     {
       method: 'POST',
-      path: inboxUrl.path,
+      path: inboxUrl.pathname + inboxUrl.search,
       timeout: config.queue.timeout,
       headers: headers,
       body: rawBody
     });
+    console.log('sendActivity: '+inboxUrl.href);
 
     return await fetch(inboxUrl.href, options)
       .then(function(res) {

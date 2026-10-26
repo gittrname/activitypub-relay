@@ -1,5 +1,7 @@
 var express = require('express');
-const { ExpressAdapter, createBullBoard, BullAdapter } = require('@bull-board/express');
+const { ExpressAdapter } = require('@bull-board/express');
+const { createBullBoard } = require('@bull-board/api');
+const { BullAdapter } = require('@bull-board/api/bullAdapter');
 
 var router = express.Router();
 
